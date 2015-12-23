@@ -74,7 +74,8 @@ class ProgramOpenDialog(QtGui.QDialog, object):
         self.resize(300, 400)
 
     def on_filter_actions(self, text):
-        self.tree.filter_actions(str(text))
+        self.tree.update_actions(force_init=False, force_new_tree=False,
+                                 filter_on=True, filter_text=str(text))
 
     def on_accept(self, evt=None, empty=False):
         if empty:
