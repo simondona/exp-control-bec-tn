@@ -31,9 +31,9 @@ Clone the repository:
 git clone https://github.com/simondona/exp-control-bec-tn.git
 ```
 
-If needed set the `main.py` as executable:
+If needed set the `exp-control.py` as executable:
 ```
-chmod +x main.py
+chmod +x exp-control.py
 ```
 
 
@@ -46,9 +46,9 @@ git checkout master
 
 From the `master` branch, launch the GUI program:
 ```
-./main.py
+./exp-control.py
 ```
-(or with `python main.py`).
+(or with `python exp-control.py`).
 
 The system kernel can also be initialized for running stand-alone without the GUI, e.g. from a python script:
 ```
