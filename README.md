@@ -39,11 +39,6 @@ chmod +x exp-control.py
 
 ## Usage
 
-Use always the `master` branch (`old-stable` just if something important is not working, while `develop` is just for testing unstable code). For changing the branch:
-```
-git checkout master
-```
-
 From the `master` branch, launch the GUI program:
 ```
 ./exp-control.py
@@ -58,6 +53,12 @@ s.init_fpga_list()
 s.set_program("test")
 s.send_program_and_run()
 ```
+
+Use always the `master` branch (`develop` is just for testing new and unstable code). If needed change the branch:
+```
+git checkout master
+```
+
 
 
 ### User data
