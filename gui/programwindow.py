@@ -24,6 +24,7 @@ from functools import partial
 from gui.constants import RED, GREEN, BLUE
 import gui.programwidget
 import gui.defaultsettings
+import gui.plotactions
 
 import PyQt4.QtGui as QtGui
 import PyQt4.QtCore as QtCore
@@ -113,16 +114,21 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         send_button.clicked.connect(self.on_program_sent)
         send_button.setStyleSheet("color: %s"%BLUE)
         right_layout.addWidget(send_button, 3, 0, 1, 2)
+        
+        plot_button = QtGui.QPushButton("Plot actions")
+        plot_button.setToolTip("graphical representation for the program actions")
+        plot_button.clicked.connect(self.on_plot_actions)
+        right_layout.addWidget(plot_button, 4, 0, 1, 2)
 
         update_fpga_button = QtGui.QPushButton("Reload FPGAs")
         update_fpga_button.setToolTip("initialize the FPGA list")
         update_fpga_button.clicked.connect(partial(self.table_widget.table.update_fpgas, init=True))
-        right_layout.addWidget(update_fpga_button, 4, 0, 1, 1)
+        right_layout.addWidget(update_fpga_button, 5, 0, 1, 1)
 
         check_fpga_button = QtGui.QPushButton("Check FPGAs")
         check_fpga_button.setToolTip("check the state of the FPGA list")
         check_fpga_button.clicked.connect(partial(self.table_widget.table.update_fpgas, init=False))
-        right_layout.addWidget(check_fpga_button, 4, 1, 1, 1)
+        right_layout.addWidget(check_fpga_button, 5, 1, 1, 1)
 
 
         #iterations/commands tab
@@ -134,7 +140,7 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         iter_cmd_tabwidget.addTab(iter_widget, "Iterations")
         iter_cmd_tabwidget.addTab(cmd_widget, "Commands")
 
-        right_layout.addWidget(iter_cmd_tabwidget, 5, 0, 1, 2)
+        right_layout.addWidget(iter_cmd_tabwidget, 6, 0, 1, 2)
 
 
         #commands tab
@@ -368,6 +374,10 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
 
         self.fpga_count_label.setText(state_text)
         self.fpga_count_label.setToolTip(state_details_tip)
+
+    def on_plot_actions(self):
+        win = gui.plotactions.PlotActionsDialog(parent=self)
+        win.show()
 
     def on_program_opened(self, title, comment):
         self.table_widget.set_title(title, comment)
