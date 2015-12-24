@@ -1,8 +1,5 @@
-programs/*
-definitions/actions/*
-definitions/boards/*
+data/
 test/
-.program.conf
 
 
 ### Python ###
