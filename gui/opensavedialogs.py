@@ -120,7 +120,7 @@ class ProgramSaveDialog(QtGui.QDialog, object):
         ok_button.setStyleSheet("color: %s"%GREEN)
         ok_button.setToolTip("save the program with given name in the selected category")
         cancel_button = QtGui.QPushButton("Cancel")
-        cancel_button.setToolTip("close DefaultProgSettingsand do nothing")
+        cancel_button.setToolTip("close and do nothing")
 
         layout.addWidget(ok_button, 3, 0, 1, 2)
         layout.addWidget(cancel_button, 4, 0, 1, 2)

@@ -21,7 +21,7 @@ import os, imp
 
 def board_list_init(board_list):
 
-    boards_path = "definitions/boards"
+    boards_path = "data/boards"
     for (dirpath, dirnames, filenames) in os.walk(boards_path):
         for fname in filenames:
             fstart, fext = os.path.splitext(fname)
@@ -30,7 +30,7 @@ def board_list_init(board_list):
                 module.board_list_init(board_list)
 
 """
-EXAMPLES for an arbitrary .py file in folder definitions/boards
+EXAMPLES for an arbitrary .py file in folder data/boards
 see board module for details
 
 

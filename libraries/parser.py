@@ -26,7 +26,7 @@ import re, os
 class Parser(object):
     def __init__(self, system):
         self.system = system
-        self.programs_folder = "programs"
+        self.programs_folder = os.path.join("data", "programs")
 
     def delete_program_file(self, prg_name):
         if self.system.action_list.is_program(prg_name):

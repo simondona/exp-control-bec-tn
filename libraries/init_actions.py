@@ -21,7 +21,7 @@ import os, imp
 
 def action_list_init(action_list):
 
-    acts_path = "definitions/actions"
+    acts_path = "data/actions"
     for (dirpath, dirnames, filenames) in os.walk(acts_path):
         for fname in filenames:
             fstart, fext = os.path.splitext(fname)
@@ -30,7 +30,7 @@ def action_list_init(action_list):
                 module.action_list_init(action_list)
 
 """
-EXAMPLES for an arbitrary .py file in folder definitions/boards
+EXAMPLES for an arbitrary .py file in folder data/boards
 see action module for details
 
 

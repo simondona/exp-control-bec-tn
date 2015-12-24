@@ -22,14 +22,13 @@ import os, imp
 
 def program_list_init(action_list):
 
-    programs_path = "programs"
+    programs_path = os.path.join("data", "programs")
     for (dirpath, dirnames, filenames) in os.walk(programs_path):
         for fname in filenames:
             fstart, fext = os.path.splitext(fname)
             if fext == ".py" and fstart != "__init__":
                 module = imp.load_source(fstart, os.path.join(dirpath, fname))
-                categories = dirpath.split("/")
-                categories.remove(programs_path)
+                categories = dirpath.replace(programs_path+"/", "", 1).split("/")
                 categories = tuple(categories)
 
                 if "prg_comment" in vars(module):

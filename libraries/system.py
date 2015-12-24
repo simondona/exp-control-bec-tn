@@ -29,7 +29,7 @@ import libraries.instruction as lib_instruction
 import libraries.fpga as lib_fpga
 import libraries.action as lib_action
 import libraries.program as lib_program
-from definitions import init_boards, init_actions, init_programs
+from libraries import init_boards, init_actions, init_programs
 import os, sys
 
 #change path

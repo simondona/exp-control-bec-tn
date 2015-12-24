@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pickle
+import pickle, os
 
 class DefaultProgSettings(object):
 
-    def __init__(self, fname="./.program.conf"):
+    def __init__(self, fname=os.path.join("data", ".program.conf")):
         self.config_fname = str(fname)
         self.last_prg = None
 
@@ -30,7 +30,7 @@ class DefaultProgSettings(object):
             with open(self.config_fname, "wb") as fid:
                 pickle.dump(vars(self), fid)
         except IOError:
-            print "ERROR: error while writing settings into file \"" + self.config_fname + "\""
+            print "ERROR: error while writing settings into file '" + self.config_fname + "'"
 
     def load_settings(self):
         try:
@@ -39,4 +39,4 @@ class DefaultProgSettings(object):
             for key, val in var.items():
                 setattr(self, key, val)
         except IOError:
-            print "WARNING: no config file \"" + self.config_fname + "\" found"
+            print "WARNING: no config file '" + self.config_fname + "' found"
