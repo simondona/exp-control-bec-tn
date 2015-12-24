@@ -88,6 +88,7 @@ The roadmap of future versions can be found in the wiki: https://github.com/simo
 
 
 ## Licence
+This software is licenced under the [GNU General Public License version 3](http://www.gnu.org/licenses/gpl-3.0.html).
 
 ```
 Experiment Control BEC TN
