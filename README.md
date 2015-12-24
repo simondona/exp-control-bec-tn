@@ -62,8 +62,8 @@ s.send_program_and_run()
 
 ### User data
 
-Files that should be modified by users are contained in `programs/`, `definitions/actions/`, `definitions/boards/`.
-Generally these directories are ignored from updates. Don't touch other files, unless you do not want to push them on the repository.
+Files that should be modified by users (or GUI) are contained in `data/`.
+Generally this directory is ignored from updates, if needed converters will update it. **Don't touch other files**, unless you do not want to push them on the repository. The directory `test/` is also ignored for local custom code if needed.
 
 
 
