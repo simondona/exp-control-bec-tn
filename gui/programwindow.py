@@ -376,7 +376,8 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         self.fpga_count_label.setToolTip(state_details_tip)
 
     def on_plot_actions(self):
-        win = gui.plotactions.PlotActionsDialog(parent=self)
+        win = gui.plotactions.PlotActionsDialog(table=self.table_widget.table,
+                                                parent=self)
         win.show()
 
     def on_program_opened(self, title, comment):
