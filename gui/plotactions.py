@@ -23,6 +23,7 @@ import PyQt4.QtGui as QtGui
 
 import matplotlib
 matplotlib.use("Qt4Agg")
+matplotlib.rcParams['font.size'] = 9
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT
@@ -32,6 +33,7 @@ class NavigationToolbar(NavigationToolbar2QT):
     toolitems = [t for t in NavigationToolbar2QT.toolitems if \
                  t[0] in ('Home', 'Pan', 'Zoom', 'Save')]
 
+
 class FigureCanvas(FigureCanvasQTAgg):
     def __init__(self, parent_axis=None, parent=None, width=5, height=4, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
@@ -39,6 +41,20 @@ class FigureCanvas(FigureCanvasQTAgg):
         self.setParent(parent)
 
         self.axis = self.fig.add_subplot(111, sharex=parent_axis)
+        self.fig.tight_layout(pad=2.5)
+
+
+class DigitalCanvas(FigureCanvas):
+    def __init__(self, *args, **kwargs):
+        super(DigitalCanvas, self).__init__(*args, height=2, **kwargs)
+        self.axis.set_yticks([])
+
+
+class AnalogCanvas(FigureCanvas):
+    def __init__(self, *args, **kwargs):
+        super(AnalogCanvas, self).__init__(*args, height=6, **kwargs)
+        self.axis.plot([1,4,2], [1,2,3], label="prova")
+        self.axis2 = self.axis.twinx()
 
 
 class PlotActionsDialog(QtGui.QDialog, object):
@@ -51,13 +67,13 @@ class PlotActionsDialog(QtGui.QDialog, object):
         layout = QtGui.QGridLayout()
         self.setLayout(layout)
 
-        plot1 = FigureCanvas(parent=self)
-        plot2 = FigureCanvas(parent_axis=plot1.axis, parent=self)
+        plot1 = AnalogCanvas(parent=self)
+        plot2 = DigitalCanvas(parent_axis=plot1.axis, parent=self)
         toolbar = NavigationToolbar(plot1, self)
 
         layout.addWidget(toolbar, 0, 0)
-        layout.addWidget(plot1, 1, 0)
-        layout.addWidget(plot2, 2, 0, 2, 1)
+        layout.addWidget(plot1, 1, 0, 3, 1)
+        layout.addWidget(plot2, 4, 0)
 
         self.setWindowTitle("Plot of program actions")
         self.setFocus()
