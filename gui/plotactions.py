@@ -96,7 +96,7 @@ class AvaiableActions(QtGui.QTableWidget, object):
                                                           n_row=n_row, n_col=3))
             self.setCellWidget(n_row, 4, combo_sty)
             combo_sty.currentIndexChanged.connect(partial(self.on_state_changed,
-                                                          n_row=n_row, n_col=3))
+                                                          n_row=n_row, n_col=4))
 
     def on_state_changed(self, n_row, n_col):
         widget = self.cellWidget(n_row, n_col)
@@ -187,11 +187,35 @@ class PlotActionsDialog(QtGui.QDialog, object):
         actions_table.actions_updated.connect(self.plot)
 
     def plot(self):
-        for act in self.avaiable_acts:
-            if self.avaiable_acts[act]["plot_y1"] or self.avaiable_acts[act]["plot_y2"]:
-                var_name = self.avaiable_acts[act]["var"]
-                x = [a["time"] for a in self.actions if a["name"]==act]
+        self.plot1.axis.cla()
+        self.plot1.axis2.cla()
+        self.plot2.axis.cla()
+        for act_name in sorted(self.avaiable_acts.keys()):
+            act = self.avaiable_acts[act_name]
+            if act["plot_y1"] or act["plot_y2"]:
+                x = [a["time"] for a in self.actions if a["name"]==act_name]
+                col = act["plot_col"]
+                if len(col) == 0:
+                    col = "k"
+                sty = act["plot_sty"]
+                if len(sty) == 0:
+                    sty = "-"
+
+                var_name = act["var"]
                 if var_name is not None:
-                    y = [a["vars"][var_name] for a in self.actions if a["name"]==act]
-                    self.plot1.axis.plot(x, y)
-                self.plot2.axis.vlines(x, 0, 1)
+                    y = [a["vars"][var_name] for a in self.actions if a["name"]==act_name]
+                    x, y = (list(t) for t in zip(*sorted(zip(x, y))))
+
+                    if act["plot_y1"]:
+                        plt_ax = self.plot1.axis
+                    else:
+                        plt_ax = self.plot1.axis2
+
+                    plt_ax.plot(x, y, col+"o", markersize=4, alpha=0.75)
+                    plt_ax.step(x, y, col, linestyle=sty, where="post",
+                                label=act, linewidth=2, alpha=0.5)
+                else:
+                    x = sorted(x)
+
+                self.plot2.axis.vlines(x, 0, 1, color=col, linestyles=sty,
+                                       label=act, linewidth=2, alpha=0.5)
