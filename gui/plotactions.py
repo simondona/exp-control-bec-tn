@@ -79,6 +79,7 @@ class AvaiableActions(QtGui.QTableWidget, object):
         for n_row, row in enumerate(sorted(self.acts.keys())):
             itm = QtGui.QTableWidgetItem(str(row))
             itm.setFlags(itm.flags()&~QtCore.Qt.ItemIsEditable)
+            itm.setToolTip(str(row))
             self.setItem(n_row, 0, itm)
 
             check_y1 = QtGui.QCheckBox()
@@ -93,7 +94,7 @@ class AvaiableActions(QtGui.QTableWidget, object):
             combo_col = ColorCombo()
             combo_sty = StyleCombo()
             col = self.acts[row]["plot_col"]
-            combo_col.setCurrentIndex([c[0] for c in ColorCombo.colors].index(col))
+            combo_col.setCurrentIndex([cl[0] for cl in ColorCombo.colors].index(col))
             self.setCellWidget(n_row, 3, combo_col)
             combo_col.currentIndexChanged.connect(partial(self.on_state_changed,
                                                           n_row=n_row, n_col=3))
@@ -144,7 +145,7 @@ class StyleCombo(QtGui.QComboBox):
 
 
 class PlotActionsDialog(QtGui.QDialog, object):
-    def __init__(self, table, parent=None, system=None):
+    def __init__(self, table, parent=None):
         super(PlotActionsDialog, self).__init__(parent=parent)
 
         self.table = table
@@ -210,7 +211,7 @@ class PlotActionsDialog(QtGui.QDialog, object):
                 y = []
                 for row in self.actions:
                     if row["name"] == act_name and row["enable"] and row["enable_parent"]:
-                        x.append(row["time"])
+                        x.append(self.table.system.get_time(row["time"]))
                         if var_name is not None:
                             y.append(row["vars"][var_name])
                         else:
