@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from functools import partial
+
 import PyQt4.QtCore as QtCore
 import PyQt4.QtGui as QtGui
 
@@ -58,34 +60,58 @@ class AnalogCanvas(FigureCanvas):
 
 class AvaiableActions(QtGui.QTableWidget, object):
     def __init__(self, acts, parent=None):
-        columns = [("name", 120),
-                   ("A1", 40),
-                   ("A2", 40),
-                   ("B", 40),
-                   ("col", 40),
-                   ("sty", 40)]
+        self.columns = [("name", 120),
+                        ("A1", 40),
+                        ("A2", 40),
+                        ("B", 40),
+                        ("col", 40),
+                        ("sty", 40)]
         self.acts = acts
 
-        super(AvaiableActions, self).__init__(len(self.acts), len(columns), parent=parent)
+        super(AvaiableActions, self).__init__(len(self.acts), len(self.columns),
+                                              parent=parent)
 
-        self.setHorizontalHeaderLabels([c[0] for c in columns])
-        for n, c in enumerate(columns):
-            self.setColumnWidth(n, c[1])
+        self.setHorizontalHeaderLabels([col[0] for col in self.columns])
+        for n_col, col in enumerate(self.columns):
+            self.setColumnWidth(n_col, col[1])
 
-        for n, a in enumerate(sorted(self.acts.keys())):
-            i = QtGui.QTableWidgetItem(str(a))
-            self.setItem(n, 0, i)
+        for n_row, row in enumerate(sorted(self.acts.keys())):
+            itm = QtGui.QTableWidgetItem(str(row))
+            itm.setFlags(itm.flags()&~QtCore.Qt.ItemIsEditable)
+            self.setItem(n_row, 0, itm)
+
             check_a1 = QtGui.QCheckBox()
             check_a2 = QtGui.QCheckBox()
             check_b = QtGui.QCheckBox()
-            self.setCellWidget(n, 1, check_a1)
-            self.setCellWidget(n, 2, check_a2)
-            self.setCellWidget(n, 3, check_b)
+            self.setCellWidget(n_row, 1, check_a1)
+            check_a1.stateChanged.connect(partial(self.on_state_changed,
+                                                  n_row=n_row, n_col=1))
+            self.setCellWidget(n_row, 2, check_a2)
+            check_a2.stateChanged.connect(partial(self.on_state_changed,
+                                                  n_row=n_row, n_col=2))
+            self.setCellWidget(n_row, 3, check_b)
+            check_b.stateChanged.connect(partial(self.on_state_changed,
+                                                 n_row=n_row, n_col=3))
 
             combo_col = ColorCombo()
-            self.setCellWidget(n, 4, combo_col)
             combo_sty = StyleCombo()
-            self.setCellWidget(n, 5, combo_sty)
+            self.setCellWidget(n_row, 4, combo_col)
+            combo_col.currentIndexChanged.connect(partial(self.on_state_changed,
+                                                          n_row=n_row, n_col=4))
+            self.setCellWidget(n_row, 5, combo_sty)
+            combo_sty.currentIndexChanged.connect(partial(self.on_state_changed,
+                                                          n_row=n_row, n_col=4))
+
+    def on_state_changed(self, n_row, n_col):
+        widget = self.cellWidget(n_row, n_col)
+        item = sorted(self.acts.keys())[n_row]
+        col = self.columns[n_col][0]
+        if n_col in [1, 2, 3]:
+            self.acts[item]["plot_"+col] = bool(widget.isChecked())
+        elif n_col == 4:
+            self.acts[item]["plot_col"] = str(widget.currentText())
+        elif n_col == 5:
+            self.acts[item]["plot_sty"] = str(widget.currentText())
 
 
 class ColorCombo(QtGui.QComboBox):
