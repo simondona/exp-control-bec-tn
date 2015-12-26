@@ -43,7 +43,8 @@ class FigureCanvas(FigureCanvasQTAgg):
         self.setParent(parent)
 
         self.axis = self.fig.add_subplot(111, sharex=parent_axis)
-        self.fig.tight_layout(pad=2.5)
+        self.fig.tight_layout(pad=3)
+        self.axis.ticklabel_format(useOffset=False)
 
 
 class DigitalCanvas(FigureCanvas):
@@ -59,13 +60,13 @@ class AnalogCanvas(FigureCanvas):
 
 
 class AvaiableActions(QtGui.QTableWidget, object):
+    columns = [("name", 120),
+               ("y1", 30),
+               ("y2", 30),
+               ("col", 40),
+               ("sty", 40)]
     actions_updated = QtCore.pyqtSignal()
     def __init__(self, acts, parent=None):
-        self.columns = [("name", 120),
-                        ("y1", 40),
-                        ("y2", 40),
-                        ("col", 40),
-                        ("sty", 40)]
         self.acts = acts
 
         super(AvaiableActions, self).__init__(len(self.acts), len(self.columns),
@@ -91,9 +92,13 @@ class AvaiableActions(QtGui.QTableWidget, object):
 
             combo_col = ColorCombo()
             combo_sty = StyleCombo()
+            col = self.acts[row]["plot_col"]
+            combo_col.setCurrentIndex([c[0] for c in ColorCombo.colors].index(col))
             self.setCellWidget(n_row, 3, combo_col)
             combo_col.currentIndexChanged.connect(partial(self.on_state_changed,
                                                           n_row=n_row, n_col=3))
+            sty = self.acts[row]["plot_sty"]
+            combo_sty.setCurrentIndex(StyleCombo.styles.index(sty))            
             self.setCellWidget(n_row, 4, combo_sty)
             combo_sty.currentIndexChanged.connect(partial(self.on_state_changed,
                                                           n_row=n_row, n_col=4))
@@ -112,19 +117,18 @@ class AvaiableActions(QtGui.QTableWidget, object):
         self.actions_updated.emit()
 
 
-class ColorCombo(QtGui.QComboBox):
+class ColorCombo(QtGui.QComboBox):    
+    colors = [("r", QtCore.Qt.red),
+              ("b", QtCore.Qt.blue),
+              ("c", QtCore.Qt.cyan),
+              ("g", QtCore.Qt.green),
+              ("m", QtCore.Qt.magenta),
+              ("y", QtCore.Qt.darkYellow),
+              ("k", QtCore.Qt.gray)]
     def __init__(self):
         super(ColorCombo, self).__init__()
 
-        colors = [("", QtCore.Qt.white),
-                  ("r", QtCore.Qt.red),
-                  ("b", QtCore.Qt.blue),
-                  ("c", QtCore.Qt.cyan),
-                  ("g", QtCore.Qt.green),
-                  ("m", QtCore.Qt.magenta),
-                  ("y", QtCore.Qt.darkYellow),
-                  ("k", QtCore.Qt.gray)]
-        for n_col, col in enumerate(colors):
+        for n_col, col in enumerate(self.colors):
             self.addItem(col[0])
             self.setItemData(n_col,
                              QtGui.QColor(col[1]),
@@ -132,11 +136,11 @@ class ColorCombo(QtGui.QComboBox):
 
 
 class StyleCombo(QtGui.QComboBox):
+    styles = ["-", "--", "-.", ":"]
     def __init__(self):
         super(StyleCombo, self).__init__()
 
-        styles = ["", "-", "--", "-.", ":"]
-        self.addItems(styles)
+        self.addItems(self.styles)
 
 
 class PlotActionsDialog(QtGui.QDialog, object):
@@ -152,11 +156,14 @@ class PlotActionsDialog(QtGui.QDialog, object):
 
         self.avaiable_acts = dict()
         for act in self.actions:
+            act["time"] = self.table.system.get_time(act["time"])
             name = act["name"]
+            col = ColorCombo.colors[hash(name)%len(ColorCombo.colors)][0]
+            sty = StyleCombo.styles[(hash(name)+13)%len(StyleCombo.styles)]
             self.avaiable_acts[name] = dict(plot_y1=False,
                                             plot_y2=False,
-                                            plot_col="",
-                                            plot_sty="")
+                                            plot_col=col,
+                                            plot_sty=sty)
 
             var = act["vars"]
             if len(var) == 1:
@@ -183,6 +190,7 @@ class PlotActionsDialog(QtGui.QDialog, object):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         self.resize(800, 400)
+        self.setWindowState(QtCore.Qt.WindowMaximized)
 
         actions_table.actions_updated.connect(self.plot)
 
@@ -190,10 +198,15 @@ class PlotActionsDialog(QtGui.QDialog, object):
         self.plot1.axis.cla()
         self.plot1.axis2.cla()
         self.plot2.axis.cla()
+        self.plot2.axis.set_yticks([])
+        self.plot1.axis.ticklabel_format(useOffset=False)
+        self.plot1.axis2.ticklabel_format(useOffset=False)
+        self.plot2.axis.ticklabel_format(useOffset=False)
         for act_name in sorted(self.avaiable_acts.keys()):
             act = self.avaiable_acts[act_name]
             if act["plot_y1"] or act["plot_y2"]:
-                x = [a["time"] for a in self.actions if a["name"]==act_name]
+                last_x = [a["time"] for a in self.actions][-1]
+                x = [a["time"] for a in self.actions if a["name"]==act_name and a["enable"] and a["enable_parent"]]
                 col = act["plot_col"]
                 if len(col) == 0:
                     col = "k"
@@ -201,9 +214,13 @@ class PlotActionsDialog(QtGui.QDialog, object):
                 if len(sty) == 0:
                     sty = "-"
 
+                x1 = sorted(x)
+
+                self.plot2.axis.vlines(x1, 0, 1, color=col, linestyles=sty,
+                                       label=act, linewidth=2, alpha=0.5)
                 var_name = act["var"]
                 if var_name is not None:
-                    y = [a["vars"][var_name] for a in self.actions if a["name"]==act_name]
+                    y = [a["vars"][var_name] for a in self.actions if a["name"]==act_name and a["enable"] and a["enable_parent"]]
                     x, y = (list(t) for t in zip(*sorted(zip(x, y))))
 
                     if act["plot_y1"]:
@@ -212,10 +229,10 @@ class PlotActionsDialog(QtGui.QDialog, object):
                         plt_ax = self.plot1.axis2
 
                     plt_ax.plot(x, y, col+"o", markersize=4, alpha=0.75)
-                    plt_ax.step(x, y, col, linestyle=sty, where="post",
+                    xlim = plt_ax.get_xlim()
+                    plt_ax.step(x+[last_x], y+[y[-1]], col, linestyle=sty, where="post",
                                 label=act, linewidth=2, alpha=0.5)
-                else:
-                    x = sorted(x)
-
-                self.plot2.axis.vlines(x, 0, 1, color=col, linestyles=sty,
-                                       label=act, linewidth=2, alpha=0.5)
+                    plt_ax.set_xlim(xlim)
+        
+        self.plot1.draw()
+        self.plot2.draw()
