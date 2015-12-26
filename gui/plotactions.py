@@ -98,7 +98,7 @@ class AvaiableActions(QtGui.QTableWidget, object):
             combo_col.currentIndexChanged.connect(partial(self.on_state_changed,
                                                           n_row=n_row, n_col=3))
             sty = self.acts[row]["plot_sty"]
-            combo_sty.setCurrentIndex(StyleCombo.styles.index(sty))            
+            combo_sty.setCurrentIndex(StyleCombo.styles.index(sty))
             self.setCellWidget(n_row, 4, combo_sty)
             combo_sty.currentIndexChanged.connect(partial(self.on_state_changed,
                                                           n_row=n_row, n_col=4))
@@ -117,7 +117,7 @@ class AvaiableActions(QtGui.QTableWidget, object):
         self.actions_updated.emit()
 
 
-class ColorCombo(QtGui.QComboBox):    
+class ColorCombo(QtGui.QComboBox):
     colors = [("r", QtCore.Qt.red),
               ("b", QtCore.Qt.blue),
               ("c", QtCore.Qt.cyan),
@@ -156,7 +156,6 @@ class PlotActionsDialog(QtGui.QDialog, object):
 
         self.avaiable_acts = dict()
         for act in self.actions:
-            act["time"] = self.table.system.get_time(act["time"])
             name = act["name"]
             col = ColorCombo.colors[hash(name)%len(ColorCombo.colors)][0]
             sty = StyleCombo.styles[(hash(name)+13)%len(StyleCombo.styles)]
@@ -176,8 +175,8 @@ class PlotActionsDialog(QtGui.QDialog, object):
         self.setLayout(layout)
 
         actions_table = AvaiableActions(self.avaiable_acts, parent=self)
-        self.plot1 = AnalogCanvas(parent=self)
-        self.plot2 = DigitalCanvas(parent_axis=self.plot1.axis, parent=self)
+        self.plot2 = DigitalCanvas(parent=self)
+        self.plot1 = AnalogCanvas(parent_axis=self.plot2.axis, parent=self)
         toolbar = NavigationToolbar(self.plot1, self)
 
         layout.addWidget(actions_table, 0, 0, 5, 1)
@@ -202,37 +201,43 @@ class PlotActionsDialog(QtGui.QDialog, object):
         self.plot1.axis.ticklabel_format(useOffset=False)
         self.plot1.axis2.ticklabel_format(useOffset=False)
         self.plot2.axis.ticklabel_format(useOffset=False)
+
         for act_name in sorted(self.avaiable_acts.keys()):
             act = self.avaiable_acts[act_name]
             if act["plot_y1"] or act["plot_y2"]:
-                last_x = [a["time"] for a in self.actions][-1]
-                x = [a["time"] for a in self.actions if a["name"]==act_name and a["enable"] and a["enable_parent"]]
-                col = act["plot_col"]
-                if len(col) == 0:
-                    col = "k"
-                sty = act["plot_sty"]
-                if len(sty) == 0:
-                    sty = "-"
-
-                x1 = sorted(x)
-
-                self.plot2.axis.vlines(x1, 0, 1, color=col, linestyles=sty,
-                                       label=act, linewidth=2, alpha=0.5)
                 var_name = act["var"]
-                if var_name is not None:
-                    y = [a["vars"][var_name] for a in self.actions if a["name"]==act_name and a["enable"] and a["enable_parent"]]
+                x = []
+                y = []
+                for row in self.actions:
+                    if row["name"] == act_name and row["enable"] and row["enable_parent"]:
+                        x.append(row["time"])
+                        if var_name is not None:
+                            y.append(row["vars"][var_name])
+                        else:
+                            y.append(None)
+                if len(x) > 1:
                     x, y = (list(t) for t in zip(*sorted(zip(x, y))))
 
+                col = act["plot_col"]
+                if col == "":
+                    col = "k"
+                sty = act["plot_sty"]
+                if sty == "":
+                    sty = "-"
+
+                if var_name is not None:
                     if act["plot_y1"]:
                         plt_ax = self.plot1.axis
                     else:
                         plt_ax = self.plot1.axis2
 
                     plt_ax.plot(x, y, col+"o", markersize=4, alpha=0.75)
-                    xlim = plt_ax.get_xlim()
-                    plt_ax.step(x+[last_x], y+[y[-1]], col, linestyle=sty, where="post",
+                    plt_ax.step(x, y, col, linestyle=sty, where="post",
                                 label=act, linewidth=2, alpha=0.5)
-                    plt_ax.set_xlim(xlim)
-        
+
+                self.plot2.axis.vlines(x, 0, 1, color=col, linestyles=sty,
+                                       label=act, linewidth=2, alpha=0.5)
+                self.plot2.axis.set_xlim(auto=True)
+
         self.plot1.draw()
         self.plot2.draw()
