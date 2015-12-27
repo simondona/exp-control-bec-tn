@@ -286,9 +286,12 @@ class PlotActionsDialog(QtGui.QDialog, object):
                         self.plot2.axis.axvspan(x_, x_+delta_t, 0, 1,
                                                 color=col, alpha=0.25)
                 self.plot2.axis.set_xlim(auto=True)
-        if self.check_legend[0].isChecked():
+                
+        if self.check_legend[0].isChecked() \
+                and len(self.plot1.axis.get_legend_handles_labels()[0]) > 0:
             self.plot1.axis.legend(loc="lower left", title="scale y1")
-        if self.check_legend[1].isChecked():
+        if self.check_legend[1].isChecked() \
+                and len(self.plot1.axis2.get_legend_handles_labels()[0]) > 0:
             self.plot1.axis2.legend(loc="lower right", title="scale y2")
         self.plot1.draw()
         self.plot2.draw()
