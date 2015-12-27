@@ -174,15 +174,16 @@ class PlotActionsDialog(QtGui.QDialog, object):
 
         legend_widget = QtGui.QWidget()
         legend_layout = QtGui.QHBoxLayout(legend_widget)
+        legend_layout.addStretch()
+        legend_layout.addWidget(update_button)
         legend_layout.addWidget(self.check_legend[0])
         legend_layout.addWidget(self.check_legend[1])
-        legend_layout.addWidget(update_button)
 
         layout.addWidget(self.actions_table, 0, 0, 5, 1)
         layout.addWidget(toolbar, 0, 1)
-        layout.addWidget(legend_widget, 0, 2)
-        layout.addWidget(self.plot1, 1, 1, 3, 2)
-        layout.addWidget(self.plot2, 4, 1, 1, 2)
+        layout.addWidget(self.plot1, 1, 1, 3, 1)
+        layout.addWidget(self.plot2, 4, 1, 1, 1)
+        layout.addWidget(legend_widget, 5, 0, 1, 2)
 
         self.setWindowTitle("Plot of program actions")
         self.setFocus()
@@ -286,7 +287,7 @@ class PlotActionsDialog(QtGui.QDialog, object):
                         self.plot2.axis.axvspan(x_, x_+delta_t, 0, 1,
                                                 color=col, alpha=0.25)
                 self.plot2.axis.set_xlim(auto=True)
-                
+
         if self.check_legend[0].isChecked() \
                 and len(self.plot1.axis.get_legend_handles_labels()[0]) > 0:
             self.plot1.axis.legend(loc="lower left", title="scale y1")
