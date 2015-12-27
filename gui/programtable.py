@@ -3,17 +3,17 @@
 
 # Experiment Control BEC TN
 # Copyright (C) 2015  Simone Donadello
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -57,8 +57,8 @@ class ProgramTable(QtGui.QTableWidget, object):
         self.col_names = dict([("time", "time"),
                                ("name", "action name"),
                                ("vars", "variables"),
-                               ("enable", "d"),
-                               ("is_subprg", "s"),
+                               ("enable", "dis"),
+                               ("is_subprg", "sub"),
                                ("parents", "parent programs")])
 
         cols = len(self.col_keys)
@@ -277,7 +277,7 @@ class ProgramTable(QtGui.QTableWidget, object):
                                              parents=itm["parents"])
                     else:
                         print "ERROR: infinite recursion for subprogram '%s'"%itm["name"]
-                        return None
+                        items = []
                 else:
                     items = [itm]
 
