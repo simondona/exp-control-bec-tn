@@ -154,23 +154,35 @@ class PlotActionsDialog(QtGui.QDialog, object):
                                           enable=True,
                                           enable_parent=True,
                                           extended=True)
+        acts2 = self.table.get_all(lst=self.table.prg_list(),
+                                    time=self.table.system.set_time(0.0),
+                                    enable=True,
+                                    enable_parent=True,
+                                    extended=False)
+        self.actions += [act for act in acts2 if act["is_subprg"]]
 
         self.avaiable_acts = dict()
         for act in self.actions:
             name = act["name"]
-            col = ColorCombo.colors[hash(name)%len(ColorCombo.colors)][0]
-            sty = StyleCombo.styles[(hash(name)+13)%len(StyleCombo.styles)]
-            self.avaiable_acts[name] = dict(plot_y1=False,
-                                            plot_y2=False,
-                                            plot_col=col,
-                                            plot_sty=sty)
+            if name not in self.avaiable_acts:
+                col = ColorCombo.colors[hash(name)%len(ColorCombo.colors)][0]
+                sty = StyleCombo.styles[(hash(name)+13)%len(StyleCombo.styles)]
+                if act["is_subprg"]:
+                    act_time = self.table.system.get_program_time(act["name"])
+                else:
+                    act_time = None
+                self.avaiable_acts[name] = dict(plot_y1=False,
+                                                plot_y2=False,
+                                                plot_col=col,
+                                                plot_sty=sty,
+                                                delta_t=act_time)
 
-            var = act["vars"]
-            if len(var) == 1:
-                var = var.keys()[0]
-            else:
-                var = None
-            self.avaiable_acts[name]["var"] = var
+                var = act["vars"]
+                if len(var) == 1:
+                    var = var.keys()[0]
+                else:
+                    var = None
+                self.avaiable_acts[name]["var"] = var
 
         layout = QtGui.QGridLayout()
         self.setLayout(layout)
@@ -180,10 +192,22 @@ class PlotActionsDialog(QtGui.QDialog, object):
         self.plot1 = AnalogCanvas(parent_axis=self.plot2.axis, parent=self)
         toolbar = NavigationToolbar(self.plot1, self)
 
+        self.check_legend = [QtGui.QCheckBox("legend y1"),
+                             QtGui.QCheckBox("legend y2")]
+        for chck in self.check_legend:
+            chck.setChecked(True)
+            chck.stateChanged.connect(self.plot)
+
+        legend_widget = QtGui.QWidget()
+        legend_layout = QtGui.QHBoxLayout(legend_widget)
+        legend_layout.addWidget(self.check_legend[0])
+        legend_layout.addWidget(self.check_legend[1])
+
         layout.addWidget(actions_table, 0, 0, 5, 1)
         layout.addWidget(toolbar, 0, 1)
-        layout.addWidget(self.plot1, 1, 1, 3, 1)
-        layout.addWidget(self.plot2, 4, 1)
+        layout.addWidget(legend_widget, 0, 2)
+        layout.addWidget(self.plot1, 1, 1, 3, 2)
+        layout.addWidget(self.plot2, 4, 1, 1, 2)
 
         self.setWindowTitle("Plot of program actions")
         self.setFocus()
@@ -226,19 +250,29 @@ class PlotActionsDialog(QtGui.QDialog, object):
                 if sty == "":
                     sty = "-"
 
+                if act["plot_y1"]:
+                    plt_ax = self.plot1.axis
+                else:
+                    plt_ax = self.plot1.axis2
                 if var_name is not None:
-                    if act["plot_y1"]:
-                        plt_ax = self.plot1.axis
-                    else:
-                        plt_ax = self.plot1.axis2
 
                     plt_ax.plot(x, y, col+"o", markersize=4, alpha=0.75)
                     plt_ax.step(x, y, col, linestyle=sty, where="post",
-                                label=act, linewidth=2, alpha=0.5)
+                                label=act_name, linewidth=2, alpha=0.5)
+                plt_ax.plot([], [], col+sty, label=act_name)
+
 
                 self.plot2.axis.vlines(x, 0, 1, color=col, linestyles=sty,
-                                       label=act, linewidth=2, alpha=0.5)
+                                       linewidth=2, alpha=0.5)
+                if act["delta_t"] is not None:
+                    delta_t = self.table.system.get_time(act["delta_t"])
+                    for x_ in x:
+                        self.plot2.axis.axvspan(x_, x_+delta_t, 0, 1,
+                                                color=col, alpha=0.25)
                 self.plot2.axis.set_xlim(auto=True)
-
+        if self.check_legend[0].isChecked():
+            self.plot1.axis.legend(loc="lower left", title="scale y1")
+        if self.check_legend[1].isChecked():
+            self.plot1.axis2.legend(loc="lower right", title="scale y2")
         self.plot1.draw()
         self.plot2.draw()
