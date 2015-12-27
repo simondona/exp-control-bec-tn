@@ -49,13 +49,13 @@ class FigureCanvas(FigureCanvasQTAgg):
 
 class DigitalCanvas(FigureCanvas):
     def __init__(self, *args, **kwargs):
-        super(DigitalCanvas, self).__init__(*args, height=2, **kwargs)
+        super(DigitalCanvas, self).__init__(height=2, *args, **kwargs)
         self.axis.set_yticks([])
 
 
 class AnalogCanvas(FigureCanvas):
     def __init__(self, *args, **kwargs):
-        super(AnalogCanvas, self).__init__(*args, height=6, **kwargs)
+        super(AnalogCanvas, self).__init__(height=6, *args, **kwargs)
         self.axis2 = self.axis.twinx()
 
 
@@ -66,12 +66,16 @@ class AvaiableActions(QtGui.QTableWidget, object):
                ("col", 40),
                ("sty", 40)]
     actions_updated = QtCore.pyqtSignal()
-    def __init__(self, acts, parent=None):
+    def __init__(self, parent=None):
+        super(AvaiableActions, self).__init__(0, len(self.columns),
+                                              parent=parent)
+        self.acts = dict()
+
+    def set_acts(self, acts):
         self.acts = acts
 
-        super(AvaiableActions, self).__init__(len(self.acts), len(self.columns),
-                                              parent=parent)
-
+        self.clear()
+        self.setRowCount(len(self.acts))
         self.setHorizontalHeaderLabels([col[0] for col in self.columns])
         for n_col, col in enumerate(self.columns):
             self.setColumnWidth(n_col, col[1])
@@ -149,49 +153,19 @@ class PlotActionsDialog(QtGui.QDialog, object):
         super(PlotActionsDialog, self).__init__(parent=parent)
 
         self.table = table
-        self.actions = self.table.get_all(lst=self.table.prg_list(),
-                                          time=self.table.system.set_time(0.0),
-                                          enable=True,
-                                          enable_parent=True,
-                                          extended=True)
-        acts2 = self.table.get_all(lst=self.table.prg_list(),
-                                    time=self.table.system.set_time(0.0),
-                                    enable=True,
-                                    enable_parent=True,
-                                    extended=False)
-        self.actions += [act for act in acts2 if act["is_subprg"]]
-
+        self.actions = []
         self.avaiable_acts = dict()
-        for act in self.actions:
-            name = act["name"]
-            if name not in self.avaiable_acts:
-                col = ColorCombo.colors[hash(name)%len(ColorCombo.colors)][0]
-                sty = StyleCombo.styles[(hash(name)+13)%len(StyleCombo.styles)]
-                if act["is_subprg"]:
-                    act_time = self.table.system.get_program_time(act["name"])
-                else:
-                    act_time = None
-                self.avaiable_acts[name] = dict(plot_y1=False,
-                                                plot_y2=False,
-                                                plot_col=col,
-                                                plot_sty=sty,
-                                                delta_t=act_time)
-
-                var = act["vars"]
-                if len(var) == 1:
-                    var = var.keys()[0]
-                else:
-                    var = None
-                self.avaiable_acts[name]["var"] = var
 
         layout = QtGui.QGridLayout()
         self.setLayout(layout)
 
-        actions_table = AvaiableActions(self.avaiable_acts, parent=self)
+        self.actions_table = AvaiableActions(parent=self)
         self.plot2 = DigitalCanvas(parent=self)
         self.plot1 = AnalogCanvas(parent_axis=self.plot2.axis, parent=self)
         toolbar = NavigationToolbar(self.plot1, self)
 
+        update_button = QtGui.QPushButton("Update actions")
+        update_button.clicked.connect(self.update_acts)
         self.check_legend = [QtGui.QCheckBox("legend y1"),
                              QtGui.QCheckBox("legend y2")]
         for chck in self.check_legend:
@@ -202,8 +176,9 @@ class PlotActionsDialog(QtGui.QDialog, object):
         legend_layout = QtGui.QHBoxLayout(legend_widget)
         legend_layout.addWidget(self.check_legend[0])
         legend_layout.addWidget(self.check_legend[1])
+        legend_layout.addWidget(update_button)
 
-        layout.addWidget(actions_table, 0, 0, 5, 1)
+        layout.addWidget(self.actions_table, 0, 0, 5, 1)
         layout.addWidget(toolbar, 0, 1)
         layout.addWidget(legend_widget, 0, 2)
         layout.addWidget(self.plot1, 1, 1, 3, 2)
@@ -216,7 +191,48 @@ class PlotActionsDialog(QtGui.QDialog, object):
         self.resize(800, 400)
         self.setWindowState(QtCore.Qt.WindowMaximized)
 
-        actions_table.actions_updated.connect(self.plot)
+        self.actions_table.actions_updated.connect(self.plot)
+        self.update_acts()
+
+    def update_acts(self):
+        self.actions = self.table.get_all(lst=self.table.prg_list(),
+                                          time=self.table.system.set_time(0.0),
+                                          enable=True,
+                                          enable_parent=True,
+                                          extended=True)
+        acts2 = self.table.get_all(lst=self.table.prg_list(),
+                                    time=self.table.system.set_time(0.0),
+                                    enable=True,
+                                    enable_parent=True,
+                                    extended=False)
+        self.actions += [act for act in acts2 if act["is_subprg"]]
+        avaiable_acts = dict()
+        for act in self.actions:
+            name = act["name"]
+            if name not in avaiable_acts:
+                col = ColorCombo.colors[hash(name)%len(ColorCombo.colors)][0]
+                sty = StyleCombo.styles[(hash(name)+13)%len(StyleCombo.styles)]
+                if act["is_subprg"]:
+                    act_time = self.table.system.get_program_time(act["name"], **act["vars"])
+                else:
+                    act_time = None
+                avaiable_acts[name] = dict(plot_y1=False,
+                                           plot_y2=False,
+                                           plot_col=col,
+                                           plot_sty=sty,
+                                           delta_t=act_time)
+
+                var = act["vars"]
+                if len(var) == 1:
+                    var = var.keys()[0]
+                else:
+                    var = None
+                avaiable_acts[name]["var"] = var
+
+        if avaiable_acts.keys() != self.avaiable_acts.keys():
+            self.avaiable_acts = avaiable_acts
+            self.actions_table.set_acts(self.avaiable_acts)
+        self.plot()
 
     def plot(self):
         self.plot1.axis.cla()
