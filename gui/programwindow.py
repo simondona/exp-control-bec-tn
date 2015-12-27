@@ -226,7 +226,6 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         iter_par_layout.addWidget(self.iter_fixed_button, 3, 0, 1, 1)
         iter_par_layout.addWidget(self.iter_fixed_time_text, 3, 1, 1, 1)
         iter_par_layout.addWidget(self.iter_current_label, 4, 0, 1, 2)
-        iter_par_layout.setRowStretch(5, 10)
 
         #iter start/stop
         self.iter_start_button = QtGui.QPushButton("Start/Stop")
@@ -238,6 +237,7 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         #set iterations layout
         iter_layout.addWidget(self.iter_par_groupbox)
         iter_layout.addWidget(self.iter_start_button)
+        iter_layout.addStretch()
 
 
         statusbar = self.statusBar()
