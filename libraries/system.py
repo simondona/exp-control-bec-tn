@@ -108,9 +108,13 @@ class System(object):
     def set_time(self, time):
         return int(self._time_base*self._time_multiplier*float(time))
 
-    def get_program_time(self):
-        if isinstance(self.main_program, lib_program.Program):
-            instrs_prg = self.main_program.get_all_instructions()
+    def get_program_time(self, prg_name=None):
+        if prg_name is None:
+            program = self.main_program
+        else:
+            program = self.action_list.get(prg_name)
+        if isinstance(program, lib_program.Program):
+            instrs_prg = program.get_all_instructions()
             if len(instrs_prg) > 0:
                 return instrs_prg[-1].time_clock
             else:
