@@ -29,6 +29,7 @@ import libraries.instruction as lib_instruction
 import libraries.fpga as lib_fpga
 import libraries.action as lib_action
 import libraries.program as lib_program
+import libraries.ramp as lib_ramp
 from libraries import init_boards, init_actions, init_programs
 import os, sys
 
@@ -108,11 +109,13 @@ class System(object):
     def set_time(self, time):
         return int(self._time_base*self._time_multiplier*float(time))
 
-    def get_program_time(self, prg_name=None):
+    def get_program_time(self, prg_name=None, *args, **kwargs):
         if prg_name is None:
             program = self.main_program
         else:
-            program = self.action_list.get(prg_name)
+            program = self.action_list.get(prg_name, *args, **kwargs)
+            if isinstance(program, lib_ramp.Ramp):
+                program = program.get_prg()
         if isinstance(program, lib_program.Program):
             instrs_prg = program.get_all_instructions()
             if len(instrs_prg) > 0:
