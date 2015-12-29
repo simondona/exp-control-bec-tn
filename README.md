@@ -1,13 +1,13 @@
-# Experiment Control BEC TN
+# Experiment Control
 
-Software interface for the FPGA-based digital control system, used in the atomic physics experiment of the ultracold gases laboratory at the University of Trento (BEC research group).
+Software interface for the FPGA-based digital control system, used in the atomic physics experiment of the ultracold gases laboratory at the University of Trento - Italy (BEC research group).
 
 
 ## Install (Debian/Ubuntu)
 
-Install `python2.7`, `numpy`, and `pyqt4`:
+Install `python2.7`, `numpy`, `matplotlib`, and `pyqt4`:
 ```
-sudo apt-get install python-numpy python-qt4
+sudo apt-get install python-numpy python-matplotlib python-qt4
 ```
 
 Install FTDI support (use an updated version for `pylibftdi`):
@@ -88,11 +88,18 @@ git stash pop
 The roadmap of future versions can be found in the wiki: https://github.com/simondona/exp-control-bec-tn/wiki
 
 
-## Licence
-This software is licenced under the [GNU General Public License version 3](http://www.gnu.org/licenses/gpl-3.0.html).
+
+## Author
+* Simone Donadello
+
+
+
+## License
+This software is licensed under the [GNU General Public License version 3](http://www.gnu.org/licenses/gpl-3.0.html).
 
 ```
-Experiment Control BEC TN
+Experiment Control
+<https://github.com/simondona/exp-control-bec-tn>
 Copyright (C) 2015  Simone Donadello
 
 This program is free software: you can redistribute it and/or modify
