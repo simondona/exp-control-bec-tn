@@ -112,10 +112,15 @@ class AvaiableActions(QtGui.QTableWidget, object):
     def on_state_changed(self, n_row, n_col):
         widget = self.cellWidget(n_row, n_col)
         item = sorted(self.acts.keys())[n_row]
-        if n_col == 1:
-            self.acts[item]["plot_y1"] = bool(widget.isChecked())
-        elif n_col == 2:
-            self.acts[item]["plot_y2"] = bool(widget.isChecked())
+        if n_col in [1, 2]:
+            n_other = [2, 1][n_col-1]
+            self.acts[item]["plot_y"+str(n_col)] = bool(widget.isChecked())
+            if self.acts[item]["plot_y"+str(n_col)]:
+                self.acts[item]["plot_y"+str(n_other)] = not bool(widget.isChecked())
+                wid_other = self.cellWidget(n_row, n_other)
+                wid_other.blockSignals(True)
+                wid_other.setChecked(self.acts[item]["plot_y"+str(n_other)])
+                wid_other.blockSignals(False)
         elif n_col == 3:
             self.acts[item]["plot_col"] = str(widget.currentText())
         elif n_col == 4:
@@ -215,7 +220,8 @@ class PlotActionsDialog(QtGui.QDialog, object):
                 col = ColorCombo.colors[hash(name)%len(ColorCombo.colors)][0]
                 sty = StyleCombo.styles[(hash(name)+13)%len(StyleCombo.styles)]
                 if act["is_subprg"]:
-                    act_time = self.table.system.get_program_time(act["name"], **act["vars"])
+                    act_time = self.table.system.get_program_time(act["name"],
+                                                                  **act["vars"])
                 else:
                     act_time = None
                 avaiable_acts[name] = dict(plot_y1=False,
@@ -273,12 +279,11 @@ class PlotActionsDialog(QtGui.QDialog, object):
                 else:
                     plt_ax = self.plot1.axis2
                 if var_name is not None:
-
                     plt_ax.plot(x, y, col+"o", markersize=4, alpha=0.75)
                     plt_ax.step(x, y, col, linestyle=sty, where="post",
                                 label=act_name, linewidth=2, alpha=0.5)
-                plt_ax.plot([], [], col+sty, label=act_name)
-
+                else:
+                    plt_ax.plot([], [], col+sty, label=act_name)
 
                 self.plot2.axis.vlines(x, 0, 1, color=col, linestyles=sty,
                                        linewidth=2, alpha=0.5)
