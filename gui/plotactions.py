@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Experiment Control BEC TN
+# Experiment Control
+# <https://github.com/simondona/exp-control-bec-tn>
 # Copyright (C) 2015  Simone Donadello
 #
 # This program is free software: you can redistribute it and/or modify

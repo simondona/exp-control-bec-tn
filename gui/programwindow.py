@@ -1,19 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Experiment Control BEC TN
+# Experiment Control
+# <https://github.com/simondona/exp-control-bec-tn>
 # Copyright (C) 2015  Simone Donadello
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -114,7 +115,7 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         send_button.clicked.connect(self.on_program_sent)
         send_button.setStyleSheet("color: %s"%BLUE)
         right_layout.addWidget(send_button, 3, 0, 1, 2)
-        
+
         plot_button = QtGui.QPushButton("Plot actions")
         plot_button.setToolTip("graphical representation for the program actions")
         plot_button.clicked.connect(self.on_plot_actions)
