@@ -70,6 +70,7 @@ class AvaiableActions(QtGui.QTableWidget, object):
         super(AvaiableActions, self).__init__(0, len(self.columns),
                                               parent=parent)
         self.acts = dict()
+        self.setHorizontalHeaderLabels([col[0] for col in self.columns])
 
     def set_acts(self, acts):
         self.acts = acts
@@ -185,7 +186,6 @@ class PlotActionsDialog(QtGui.QDialog, object):
         layout.addWidget(self.plot2, 4, 1, 1, 1)
         layout.addWidget(legend_widget, 5, 0, 1, 2)
 
-        self.setWindowTitle("Plot of program actions")
         self.setFocus()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
@@ -196,6 +196,7 @@ class PlotActionsDialog(QtGui.QDialog, object):
         self.update_acts()
 
     def update_acts(self):
+        self.setWindowTitle("Plot actions of program \"%s\""%self.table.prg_name)
         self.actions = self.table.get_all(lst=self.table.prg_list(),
                                           time=self.table.system.set_time(0.0),
                                           enable=True,
