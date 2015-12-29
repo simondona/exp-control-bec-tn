@@ -41,7 +41,13 @@ class System(object):
     _time_base = 10e6
     _time_multiplier = 1e-3
     time_formats = dict(time="%.4f", time_rel="%+.4f")
+
     def __init__(self, external_trigger=False):
+        print "Experiment Control"
+        print "author: Simone Donadello - license: GNU GPL v3"
+        print "<https://github.com/simondona/exp-control-bec-tn>"
+        print
+
         self.fpga_list = []
         self.main_program = None
         self.external_trigger = bool(external_trigger)

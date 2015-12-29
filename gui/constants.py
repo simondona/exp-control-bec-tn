@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-PRG_NAME, PRG_VERSION = "Experiment Control BEC TN", "0.6.1"
+PRG_NAME, PRG_VERSION = "EC - Experiment Control", "0.6.2"
 
 GREEN = "#228B22"
 RED = "#B22222"
