@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Experiment Control
-# <https://github.com/simondona/exp-control-bec-tn>
-# Copyright (C) 2015  Simone Donadello
+# Copyright (C) 2015-2016  Simone Donadello
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,8 +42,8 @@ class System(object):
 
     def __init__(self, external_trigger=False):
         print "Experiment Control"
+        print "https://github.com/simondona/exp-control-bec-tn"
         print "author: Simone Donadello - license: GNU GPL v3"
-        print "<https://github.com/simondona/exp-control-bec-tn>"
         print
 
         self.fpga_list = []

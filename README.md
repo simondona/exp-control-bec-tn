@@ -1,10 +1,11 @@
 # Experiment Control
+Software interface for the FPGA-based digital control system,
+used in the atomic physics experiment of the ultracold gases laboratory at the University of Trento - Italy (BEC research group).
 
-Software interface for the FPGA-based digital control system, used in the atomic physics experiment of the ultracold gases laboratory at the University of Trento - Italy (BEC research group).
+https://github.com/simondona/exp-control-bec-tn
 
 
 ## Install (Debian/Ubuntu)
-
 Install `python2.7`, `numpy`, `matplotlib`, and `pyqt4`:
 ```
 sudo apt-get install python-numpy python-matplotlib python-qt4
@@ -38,7 +39,6 @@ chmod +x exp-control.py
 
 
 ## Usage
-
 From the `master` branch, launch the GUI program:
 ```
 ./exp-control.py
@@ -54,22 +54,21 @@ s.set_program("test")
 s.send_program_and_run()
 ```
 
-Use always the `master` branch (`develop` is just for testing new and unstable code). If needed change the branch:
+Use always the `master` branch (`develop` is just for testing new and unstable code).
+If needed change the branch:
 ```
 git checkout master
 ```
 
 
-
 ### User data
-
 Files that should be modified by users (or GUI) are contained in `data/`.
-Generally this directory is ignored from updates, if needed converters will update it. **Don't touch other files**, unless you do not want to push them on the repository. The directory `test/` is also ignored for local custom code if needed.
-
+Generally this directory is ignored from updates, if needed converters will update it.
+**Don't touch other files**, unless you want to push them on the repository.
+The directory `test/` is also ignored for local custom code if needed.
 
 
 ## Updates
-
 Before and after updating from the remote repository, use `git status` to check the current status.
 
 This should work:
@@ -88,19 +87,15 @@ git stash pop
 The roadmap of future versions can be found in the wiki: https://github.com/simondona/exp-control-bec-tn/wiki
 
 
-
 ## Author
-* Simone Donadello
-
+* [Simone Donadello](https://github.com/simondona/) <simon.dona.dev@gmail.com>
 
 
 ## License
 This software is licensed under the [GNU General Public License version 3](http://www.gnu.org/licenses/gpl-3.0.html).
 
 ```
-Experiment Control
-<https://github.com/simondona/exp-control-bec-tn>
-Copyright (C) 2015  Simone Donadello
+Copyright (C) 2015-2016  Simone Donadello
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
