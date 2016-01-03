@@ -72,7 +72,7 @@ class System(object):
         for n_id, name in enumerate(new_list):
             if name[1] == "DLP-FPGA":
                 self.fpga_list.append(lib_fpga.Fpga(device_index=n_id))
-        print "found " + str(len(self.fpga_list)) + " FPGAs connected"
+        print "found %d FPGAs connected"%len(self.fpga_list)
 
     def print_fpga_commands(self):
         for cmd in self._get_program_commands():
@@ -205,7 +205,6 @@ class System(object):
             if not valid:
                 for probl in problems:
                     probl.parents[-1].get(probl.uuid).enable = False
-            valid, problems = self.check_instructions()
 
             instrs_fpga = []
             prev_instr = lib_instruction.Instruction(0, lib_action.Action(self, "temp"))

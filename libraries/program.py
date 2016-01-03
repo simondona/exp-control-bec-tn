@@ -105,7 +105,7 @@ class Program(object):
         instructs.sort()
         return instructs
 
-    def print_instructions(self, extended=False, only_enabled=True):
+    def _print_instructions(self, extended=False, only_enabled=True):
         if not bool(extended):
             to_print = "Program intructions:\n"
             instructs = self.get_instructions(only_enabled=only_enabled)

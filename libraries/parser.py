@@ -331,7 +331,7 @@ class Parser(object):
         elif "s" in fmt: typ = str
         else:
             typ = str
-            print "WARNING: unrecognized format \"%s\""%fmt
+            print "WARNING: unrecognized format '%s'"%fmt
         return typ
 
     def get_actions_dict(self, only_prg=False):
