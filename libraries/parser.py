@@ -359,7 +359,7 @@ class Parser(object):
             for uv in act_dict["vars"]:
                 act_dict["vars"][uv] = getattr(instr.action, uv)
             act_dict["enable"] = instr.enable
-            act_dict["time"] = instr.time_clock
+            act_dict["time"] = instr.time
             lst.append(act_dict)
 
         return lst

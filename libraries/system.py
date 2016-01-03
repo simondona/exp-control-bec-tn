@@ -124,7 +124,7 @@ class System(object):
         if isinstance(program, lib_program.Program):
             instrs_prg = program.get_all_instructions()
             if len(instrs_prg) > 0:
-                return instrs_prg[-1].time_clock
+                return instrs_prg[-1].time
             else:
                 return 0
         else:
@@ -153,11 +153,11 @@ class System(object):
                         if time_delta < 4:
                             problems.append(instr)
                             valid = False
-                            print "ERROR: too short time between actions '%s' and '%s' at time %f (minimum is 4 clock cicles)"%(prev_instr.action.name, instr.action.name, self.get_time(instr.time_clock))
+                            print "ERROR: too short time between actions '%s' and '%s' at time %f (minimum is 4 clock cicles)"%(prev_instr.action.name, instr.action.name, self.get_time(instr.time))
                         if time_delta > 2**32:
                             valid = False
                             problems.append(instr)
-                            print "ERROR: too long time between actions '%s' and '%s' at time %f (maximum is ~429s)"%(prev_instr.action.name, instr.action.name, self.get_time(instr.time_clock))
+                            print "ERROR: too long time between actions '%s' and '%s' at time %f (maximum is ~429s)"%(prev_instr.action.name, instr.action.name, self.get_time(instr.time))
                         prev_instr = instr
 
                     if len(instructions) >= fifo_size \
@@ -169,15 +169,15 @@ class System(object):
                             valid = False
                             problems += instructions[n_instr:fifo_size+n_instr]
                             first_density_error = True
-                            print "ERROR: too dense operations starting at time %f (a rate of ~20 clock cicles per action can be sustained when the FIFO is empty)"%self.get_time(instructions[n_instr].time_clock)
+                            print "ERROR: too dense operations starting at time %f (a rate of ~20 clock cicles per action can be sustained when the FIFO is empty)"%self.get_time(instructions[n_instr].time)
 
                     if isinstance(instr.action, lib_action.DdsAction) \
                                             and prev_dds_instr is not None:
-                        if instr.time_clock - prev_dds_instr.time_clock < 0.035 \
+                        if instr.time - prev_dds_instr.time < 0.035 \
                                 and instr.action.board == prev_dds_instr.action.board:
                             valid = False
                             problems.append(instr)
-                            print "ERROR: DDS actions '%s' and '%s' at time %f are too close (a DDS action takes ~35us to complete)"%(prev_dds_instr.action.name, instr.action.name, self.get_time(instr.time_clock))
+                            print "ERROR: DDS actions '%s' and '%s' at time %f are too close (a DDS action takes ~35us to complete)"%(prev_dds_instr.action.name, instr.action.name, self.get_time(instr.time))
                         prev_dds_instr = None
                     if isinstance(instr.action, lib_action.DdsAction):
                         prev_dds_instr = instr
@@ -217,7 +217,7 @@ class System(object):
 
                     prev_instr = curr_instr
                 else:
-                    print "WARNING: action '%s' at time %f wont be executed"%(curr_instr.action.name, self.get_time(curr_instr.time_clock))
+                    print "WARNING: action '%s' at time %f wont be executed"%(curr_instr.action.name, self.get_time(curr_instr.time))
 
             end_instr = lib_instruction.FpgaInstruction(0, action=lib_action.EndAction(self))
             instrs_fpga.append(end_instr)
@@ -239,7 +239,7 @@ class System(object):
             for instr_num, instr in enumerate(instructions):
                 cmd_list.append(lib_command.LoadCommand(memory=instr_num,
                                                         command=instr.action.command_bits,
-                                                        time=instr.time_clock,
+                                                        time=instr.time,
                                                         address=instr.action.board.address,
                                                         data=instr.data))
 
@@ -252,7 +252,7 @@ class System(object):
     def _get_instr_time_diff(self, prev_instr, curr_instr):
         if isinstance(prev_instr, lib_instruction.Instruction) and \
                     isinstance(curr_instr, lib_instruction.Instruction):
-            delta_t = int(curr_instr.time_clock - prev_instr.time_clock)
+            delta_t = int(curr_instr.time - prev_instr.time)
             return max(0, delta_t)
         else:
             print "WARNING: wrong call to time interval function, two '%s' must be given"%(str(lib_instruction.Instruction))

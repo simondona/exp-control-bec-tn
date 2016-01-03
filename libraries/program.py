@@ -85,14 +85,14 @@ class Program(object):
             if isinstance(instr.action, Program):
                 for instr_sub in instr.action.get_all_instructions():
                     i0 = copy(instr_sub)
-                    i0.time_clock += instr.time_clock
+                    i0.time += instr.time
                     i0.parents = instr.parents + i0.parents
                     instructs.append(i0)
             elif isinstance(instr.action, lib_action.Action):
                 i0 = copy(instr)
                 instructs.append(i0)
             else:
-                print "ERROR: wrong action type found for instruction at time %d of program \"%s\" (\"%s\" instead of \"%s\" or \"%s\")"%(instr.time_clock, self.name, str(type(instr.action)), str(lib_action.Action), str(Program))
+                print "ERROR: wrong action type found for instruction at time %d of program \"%s\" (\"%s\" instead of \"%s\" or \"%s\")"%(instr.time, self.name, str(type(instr.action)), str(lib_action.Action), str(Program))
         instructs.sort()
         return instructs
 
@@ -114,7 +114,7 @@ class Program(object):
             instructs = self.get_all_instructions(only_enabled=only_enabled)
 
         for inst in instructs:
-            to_print += "%15d"%inst.time_clock + " " + str(inst.action.name)
+            to_print += "%15d"%inst.time + " " + str(inst.action.name)
             if isinstance(inst.action, lib_action.AnalogAction):
                 if inst.action.value is not None:
                     to_print += " - value: " + str(inst.action.value)
