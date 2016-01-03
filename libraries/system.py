@@ -142,7 +142,7 @@ class System(object):
                 if len(instructions) >= 2**14:
                     valid = False
                     problems += instructions[2**14:]
-                    print "ERROR: too many instructions " + str(len(instructions)) + " in the program (maximum is 16k)"
+                    print "ERROR: too many instructions in the program, %d (maximum is 16k)"%len(instructions)
 
                 fifo_size = 2*(2**11)
                 prev_instr = instructions[0]
@@ -153,11 +153,11 @@ class System(object):
                         if time_delta < 4:
                             problems.append(instr)
                             valid = False
-                            print "ERROR: too short time between actions '" + prev_instr.action.name + "' and '" + instr.action.name + "' at time " + str(self.get_time(instr.time_clock)) + " (minimum is 4 clock cicles)"
+                            print "ERROR: too short time between actions '%s' and '%s' at time %f (minimum is 4 clock cicles)"%(prev_instr.action.name, instr.action.name, self.get_time(instr.time_clock))
                         if time_delta > 2**32:
                             valid = False
                             problems.append(instr)
-                            print "ERROR: too long time between actions '" + prev_instr.action.name + "' and '" + instr.action.name + "' at time " + str(self.get_time(instr.time_clock)) + " (maximum is about 429s)"
+                            print "ERROR: too long time between actions '%s' and '%s' at time %f (maximum is ~429s)"%(prev_instr.action.name, instr.action.name, self.get_time(instr.time_clock))
                         prev_instr = instr
 
                     if len(instructions) >= fifo_size \
@@ -169,7 +169,7 @@ class System(object):
                             valid = False
                             problems += instructions[n_instr:fifo_size+n_instr]
                             first_density_error = True
-                            print "ERROR: too dense operations starting at time " + str(self.get_time(instructions[n_instr].time_clock)) + " (a rate of 20 clock cicles per action can be sustained when the FIFO is empty)"
+                            print "ERROR: too dense operations starting at time %f (a rate of ~20 clock cicles per action can be sustained when the FIFO is empty)"%self.get_time(instructions[n_instr].time_clock)
 
                     if isinstance(instr.action, lib_action.DdsAction) \
                                             and prev_dds_instr is not None:
@@ -177,7 +177,7 @@ class System(object):
                                 and instr.action.board == prev_dds_instr.action.board:
                             valid = False
                             problems.append(instr)
-                            print "ERROR: DDS actions '" + prev_dds_instr.action.name + "' and '" + instr.action.name + "' at time " + str(self.get_time(instr.time_clock)) + " are too close (a DDS action takes 35us to complete)"
+                            print "ERROR: DDS actions '%s' and '%s' at time %f are too close (a DDS action takes ~35us to complete)"%(prev_dds_instr.action.name, instr.action.name, self.get_time(instr.time_clock))
                         prev_dds_instr = None
                     if isinstance(instr.action, lib_action.DdsAction):
                         prev_dds_instr = instr
@@ -217,7 +217,7 @@ class System(object):
 
                     prev_instr = curr_instr
                 else:
-                    print "WARNING: action \"%s\" at time %f wont be executed"%(curr_instr.action.name, self.get_time(curr_instr.time_clock))
+                    print "WARNING: action '%s' at time %f wont be executed"%(curr_instr.action.name, self.get_time(curr_instr.time_clock))
 
             end_instr = lib_instruction.FpgaInstruction(0, action=lib_action.EndAction(self))
             instrs_fpga.append(end_instr)
@@ -255,5 +255,5 @@ class System(object):
             delta_t = int(curr_instr.time_clock - prev_instr.time_clock)
             return max(0, delta_t)
         else:
-            print "WARNING: wrong call to time interval function, two \"%s\" must be given"%(str(lib_instruction.Instruction))
+            print "WARNING: wrong call to time interval function, two '%s' must be given"%(str(lib_instruction.Instruction))
             return None
