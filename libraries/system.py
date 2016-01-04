@@ -74,10 +74,6 @@ class System(object):
                 self.fpga_list.append(lib_fpga.Fpga(device_index=n_id))
         print "found %d FPGAs connected"%len(self.fpga_list)
 
-    def print_fpga_commands(self):
-        for cmd in self._get_program_commands():
-            print cmd.get_hex()
-
     def get_fpga_status(self):
         status = []
         for fpga_id in self.fpga_list:
@@ -256,3 +252,7 @@ class System(object):
         else:
             print "WARNING: wrong call to time interval function, two '%s' must be given"%(str(lib_instruction.Instruction))
             return None
+
+    def _print_fpga_commands(self):
+        for cmd in self._get_program_commands():
+            print cmd.get_hex()
