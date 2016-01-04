@@ -263,7 +263,7 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
             fpga_layout.addWidget(labl)
 
         self.set_progressbar_value(0)
-        self.table_widget.table.update_fpgas(init=True)
+        self.table_widget.table.update_fpgas(init=False)
 
     def on_cmd_changed(self):
         self.table_widget.table.cmd_str = (str(self.cmd_init_edit.toPlainText()),

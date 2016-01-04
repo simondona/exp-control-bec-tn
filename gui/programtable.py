@@ -499,7 +499,7 @@ class ProgramTable(QtGui.QTableWidget, object):
 
     def update_fpgas(self, evt=None, init=True):
         if init:
-            self.system.init_fpga_list()
+            self.system.init_fpgas()
         status = self.system.get_fpga_status()
         self.fpgas_updated.emit(status)
         return status

@@ -46,11 +46,17 @@ class System(object):
         print "author: Simone Donadello - license: GNU GPL v3"
         print
 
-        self.fpga_list = []
         self.main_program = None
         self.external_trigger = bool(external_trigger)
+
+        self.fpga_list = []
+        self.board_list = []
+        self.action_list = []
+
+        self.init_fpgas()
         self.init_boards()
         self.init_actions()
+
         self.variables = dict()
         self.cmd_thread = lib_syscommand.SysCommand(self)
         self.parser = lib_parser.Parser(self)
@@ -66,7 +72,7 @@ class System(object):
         init_actions.action_list_init(self.action_list)
         init_programs.program_list_init(self.action_list)
 
-    def init_fpga_list(self):
+    def init_fpgas(self):
         new_list = pylibftdi.Driver().list_devices()
         self.fpga_list = []
         for n_id, name in enumerate(new_list):
