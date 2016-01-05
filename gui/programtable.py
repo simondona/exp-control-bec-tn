@@ -504,6 +504,12 @@ class ProgramTable(QtGui.QTableWidget, object):
         self.fpgas_updated.emit(status)
         return status
 
+    def check_prg(self):
+        prg_name = "__temp_check"
+        self.save_prg(prg_name=prg_name, categories=[], prg_list=self.prg_list())
+        self.system.set_program(prg_name)
+        self.system.check_instructions()
+
     def send_prg(self, evt=None, prg_name=None, save_before=False):
         result = False
         if save_before and self.prg_name is not None:

@@ -114,10 +114,15 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         send_button.setStyleSheet("color: %s"%BLUE)
         right_layout.addWidget(send_button, 3, 0, 1, 2)
 
-        plot_button = QtGui.QPushButton("Plot actions")
+        plot_button = QtGui.QPushButton("Plot acts")
         plot_button.setToolTip("graphical representation for the program actions")
         plot_button.clicked.connect(self.on_plot_actions)
-        right_layout.addWidget(plot_button, 4, 0, 1, 2)
+        right_layout.addWidget(plot_button, 4, 0, 1, 1)
+
+        plot_button = QtGui.QPushButton("Check prg")
+        plot_button.setToolTip("perform a validity check for the program actions")
+        plot_button.clicked.connect(self.on_check_program)
+        right_layout.addWidget(plot_button, 4, 1, 1, 1)
 
         update_fpga_button = QtGui.QPushButton("Reload FPGAs")
         update_fpga_button.setToolTip("initialize the FPGA list")
@@ -378,6 +383,9 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         win = gui.plotactions.PlotActionsDialog(table=self.table_widget.table,
                                                 parent=self)
         win.show()
+
+    def on_check_program(self):
+        self.table_widget.table.check_prg()
 
     def on_program_opened(self, title, comment):
         self.table_widget.set_title(title, comment)
