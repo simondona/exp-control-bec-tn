@@ -509,7 +509,7 @@ class ProgramTable(QtGui.QTableWidget, object):
         if save_before and self.prg_name is not None:
             self.save_prg()
         elif self.prg_name is None:
-            self.save_prg(prg_name="__new_program", categories=[], prg_list=self.prg_list(), cmd_str=("",""))
+            self.save_prg(prg_name="__new_program", categories=[], prg_list=self.prg_list())
 
         status = self.update_fpgas(init=False)
         tot_state = True
@@ -549,7 +549,7 @@ class ProgramTable(QtGui.QTableWidget, object):
             else:
                 acts = [action]
 
-        self.save_prg(prg_name="__temp_direct_run", prg_list=acts, categories=[], cmd_str=("",""))
+        self.save_prg(prg_name="__temp_direct_run", prg_list=acts, categories=[])
         self.send_prg(prg_name="__temp_direct_run")
 
     def save_prg_as(self, evt=None, dialog=None):
