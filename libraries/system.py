@@ -43,7 +43,7 @@ class System(object):
     def __init__(self, external_trigger=False):
         print "Experiment Control"
         print "https://github.com/simondona/exp-control-bec-tn"
-        print "author: Simone Donadello - license: GNU GPL v3"
+        print "author: Simone Donadello - license: GNU GPLv3"
         print
 
         self.main_program = None
@@ -117,6 +117,7 @@ class System(object):
         return int(self._time_base*self._time_multiplier*float(time))
 
     def get_program_time(self, prg_name=None, *args, **kwargs):
+        #TODO: control if the correct main program is loaded when it is called
         if prg_name is None:
             program = self.main_program
         else:
@@ -134,10 +135,12 @@ class System(object):
             return 0
 
     def check_instructions(self):
+        #TODO: control if the correct main program is loaded when it is called
+        problems = []
+        valid = False
         if isinstance(self.main_program, lib_program.Program):
             instructions = self.main_program.get_all_instructions()
 
-            problems = []
             valid = True
             first_density_error = False
             if len(instructions) >= 2:
@@ -184,11 +187,10 @@ class System(object):
                     if isinstance(instr.action, lib_action.DdsAction):
                         prev_dds_instr = instr
 
-            return valid, problems
-        else:
-            return False, []
+        return valid, problems
 
     def send_program_and_run(self):
+        #TODO: control if the correct main program is loaded when it is called
         result = False
         if isinstance(self.main_program, lib_program.Program):
             instructions = self._get_program_commands()
@@ -201,6 +203,7 @@ class System(object):
         return result
 
     def _run_program(self):
+        instrs_fpga = []
         if isinstance(self.main_program, lib_program.Program):
             instrs_prg = self.main_program.get_all_instructions()
             valid, problems = self.check_instructions()
@@ -208,7 +211,6 @@ class System(object):
                 for probl in problems:
                     probl.parents[-1].get(probl.uuid).enable = False
 
-            instrs_fpga = []
             prev_instr = lib_instruction.Instruction(0, lib_action.Action(self, "temp"))
             for curr_instr in instrs_prg:
                 if curr_instr not in problems:
@@ -223,15 +225,13 @@ class System(object):
             end_instr = lib_instruction.FpgaInstruction(0, action=lib_action.EndAction(self))
             instrs_fpga.append(end_instr)
 
-            return instrs_fpga
-        else:
-            return []
+        return instrs_fpga
 
     def _get_program_commands(self):
+        cmd_list = []
         if isinstance(self.main_program, lib_program.Program):
             instructions = self._run_program()
 
-            cmd_list = []
             if self.external_trigger:
                 cmd_list.append(lib_command.ExtTriggerOnCommand())
             else:
@@ -246,9 +246,7 @@ class System(object):
 
             cmd_list.append(lib_command.LoadDoneCommand())
 
-            return cmd_list
-        else:
-            return []
+        return cmd_list
 
     def _get_instr_time_diff(self, prev_instr, curr_instr):
         if isinstance(prev_instr, lib_instruction.Instruction) and \
