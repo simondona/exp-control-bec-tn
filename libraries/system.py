@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2015-2016  Simone Donadello
@@ -60,6 +60,14 @@ class System(object):
         self.variables = dict()
         self.cmd_thread = lib_syscommand.SysCommand(self)
         self.parser = lib_parser.Parser(self)
+    
+    @property    
+    def all_fpga_ready(self):
+        status = self.get_fpga_status()
+        tot_state = True
+        for state in status:
+            tot_state = tot_state and not state.running
+        return tot_state
 
     def init_boards(self):
         #first load boards
@@ -194,6 +202,10 @@ class System(object):
         result = False
         if isinstance(self.main_program, lib_program.Program):
             instructions = self._get_program_commands()
+            while not self.all_fpga_ready:
+                print "FPGAs are still in execution. Waiting..."
+                sleep_event = threading.Event()
+                sleep_event.wait(1000*self._time_multiplier)
             print "running the current program"
             for fpga_id in self.fpga_list:
                 valid = fpga_id.send_program_and_run(instructions)
