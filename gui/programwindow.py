@@ -77,7 +77,7 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         right_layout = QtGui.QGridLayout(right_widget)
 
         right_widget.setMinimumWidth(160)
-        right_widget.setMaximumWidth(300)
+        right_widget.setMaximumWidth(400)
 
         main_layout.addWidget(self.table_widget)
         main_layout.addWidget(right_widget)
