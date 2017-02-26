@@ -138,7 +138,8 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
 
         #iterations/commands tab
         iter_cmd_tabwidget = QtGui.QTabWidget(self)
-        cmd_widget = gui.commandwidget.CommandWidget(mainwindow=self)
+        cmd_widget = gui.commandwidget.CommandWidget(init_edit=self.cmd_init_edit,
+                                                     loop_edit=self.cmd_loop_edit)
         
         #commands tab connections
         cmd_widget.start_cmd_button.clicked.connect(self.on_start_cmd)

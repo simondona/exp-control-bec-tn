@@ -204,11 +204,9 @@ class VariablesWidget(QtGui.QWidget):
         
         
 class CommandWidget(QtGui.QWidget):
-    def __init__(self, mainwindow, parent=None, *args, **kwargs):
-        self.mainwindow = mainwindow
-        
-        self.cmd_init_edit = mainwindow.cmd_init_edit
-        self.cmd_loop_edit = mainwindow.cmd_loop_edit
+    def __init__(self, init_edit, loop_edit, parent=None, *args, **kwargs):
+        self.cmd_init_edit = init_edit
+        self.cmd_loop_edit = loop_edit
         self.cmd_init_edit.setToolTip("run once at the beginning, variables prg and cmd are avaiable")
         self.cmd_loop_edit.setToolTip("infinite loop, interrupt with cmd.stop()")
         super(CommandWidget, self).__init__(parent=None, *args, **kwargs)
