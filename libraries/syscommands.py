@@ -39,7 +39,7 @@ class SysCommand(object):
             print "CMD: wait the end of the program"
             self.sleep(time_sleep)
 
-    def run(self, wait_end=True):
+    def run(self, wait_end=True, add_time=100):
         if self.running:
             print "CMD: run program"
             self._system.set_program()
@@ -47,7 +47,7 @@ class SysCommand(object):
             if not valid:
                 print "CMD: ERROR while running program"
             if wait_end:
-                self.wait_end()
+                self.wait_end(add_time=add_time)
 
     def load(self, prg_name=None):
         if self.running:

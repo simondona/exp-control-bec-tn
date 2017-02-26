@@ -16,7 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import os
+icons_path = os.path.join(os.getcwd(), 'gui', 'icons')
 from PySide import QtGui, QtCore
 
 from .constants import RED, BLUE
@@ -74,7 +75,7 @@ class VariableForm(QtGui.QWidget):
         self.gridLayout.setVerticalSpacing(0)
         
         self.name_edit = QtGui.QLineEdit(self)
-        self.name_edit.setText("")
+        self.name_edit.setText("x")
         self.gridLayout.addWidget(self.name_edit, 0, 0, 1, 2)
         
         self.add_button = QtGui.QPushButton("Add")
@@ -112,31 +113,26 @@ class VariableForm(QtGui.QWidget):
 
 class VariablesWidget(QtGui.QWidget):
     def __init__(self, iconSize=QtCore.QSize(36, 36), *args, **kwargs):
-        self.vars_list = []
+        self.variables = []
         self._iconSize = iconSize
         super(VariablesWidget, self).__init__(*args, **kwargs)
         self.initUi()
         
         self.add_variable()
-    
+        
     @property    
     def n_vars(self):
-        return len(self.vars_list)
-    @property
-    def operation(self):
-        if self.n_vars >= 1:
-            return self.oper_combo.currentText()
-        else:
-            return None
+        return len(self.variables)
                 
     def initUi(self):
         layout = QtGui.QVBoxLayout(self)
         
-        self.auto_button = QtGui.QPushButton()
-        self.auto_button.setCheckable(True)
-        self.auto_button.toggled.connect(self.style_auto_button)
-        self.style_auto_button()        
-        layout.addWidget(self.auto_button)
+        self.write_button = QtGui.QPushButton("Write")
+        layout.addWidget(self.write_button)
+        
+        self.ask_radioButton = QtGui.QRadioButton("Ask before overwrite")
+        self.ask_radioButton.setChecked(True)
+        layout.addWidget(self.ask_radioButton)
         
         line = QtGui.QFrame()
         line.setFrameShape(QtGui.QFrame.HLine)
@@ -152,15 +148,17 @@ class VariablesWidget(QtGui.QWidget):
         
         self.oper_combo = QtGui.QComboBox()
         self.oper_combo.setFixedHeight(self._iconSize.height())
-        self.oper_combo.addItem("plus") #TODO add icons
-        self.oper_combo.addItem("cross")
+#        self.oper_combo.addItem("plus") #TODO add icons
+#        self.oper_combo.addItem("times")
 #        like:
-#        icon = QtGui.QIcon(QtGui.QPixmap(_fromUtf8(':/icons/edit-table-insert-column-right.png')))
-#        self.oper_combo.addItem(icon, "+")
+        icon = QtGui.QIcon(QtGui.QPixmap(os.path.join(icons_path, 'plus.png')))
+        self.oper_combo.addItem(icon, "plus")
+        icon = QtGui.QIcon(QtGui.QPixmap(os.path.join(icons_path, 'times.png')))
+        self.oper_combo.addItem(icon, "times")
         hlayout.addWidget(self.oper_combo)        
         self.oper_combo.setVisible(False)
         
-        hlayout.setStretch(0,3)
+        hlayout.setStretch(0,2)
         hlayout.setStretch(1,1)
         
         
@@ -186,7 +184,7 @@ class VariablesWidget(QtGui.QWidget):
         
     def add_variable(self):
         v = VariableForm()
-        self.vars_list.append(v)
+        self.variables.append(v)
         self.vars_layout.addWidget(v)
         v.add_button.clicked.connect(self.add_variable)
         if self.n_vars > 1:
@@ -199,19 +197,9 @@ class VariablesWidget(QtGui.QWidget):
     def del_variable(self, var):
         self.vars_layout.removeWidget(var)
         var.deleteLater()
-        self.vars_list.remove(var)
+        self.variables.remove(var)
         if self.n_vars <= 1:
             self.oper_combo.setVisible(False)
-            
-    def style_auto_button(self):
-        if self.auto_button.isChecked():
-            self.auto_button.setText('Auto')
-            self.auto_button.setStyleSheet("color: %s"%RED)
-        else:
-            self.auto_button.setText('Manual')
-            self.auto_button.setStyleSheet("")
-        
-        
         
         
         
@@ -226,9 +214,19 @@ class CommandWidget(QtGui.QWidget):
         super(CommandWidget, self).__init__(parent=None, *args, **kwargs)
         self.initUi()
         
-        self.variables = self.vars_tab.vars_list
-        self.operation = self.vars_tab.operation
+        # get attributes from the edit widget
         
+        self.vars_tab.write_button.clicked.connect(self.write_commands)
+        
+    @property    
+    def n_vars(self):
+        return len(self.vars_tab.variables)
+    @property
+    def operation(self):
+        if self.n_vars > 1:
+            return self.vars_tab.oper_combo.currentText()
+        else:
+            return None
         
     def initUi(self):
         cmd_layout = QtGui.QGridLayout(self)
@@ -236,8 +234,6 @@ class CommandWidget(QtGui.QWidget):
         #commands tab
         self.vars_tab = VariablesWidget()
         self.vars_tab.setToolTip("An user-friendly interface for cmd variables setting")
-        
-
 
         code_tab = QtGui.QWidget()
         code_tab.setToolTip("The commands code")
@@ -279,3 +275,88 @@ class CommandWidget(QtGui.QWidget):
         cmd_layout.addWidget(cmd_sub_tabwidget, 0, 0, 1, 2)
         cmd_layout.addWidget(self.start_cmd_button, 1, 0, 1, 1)
         cmd_layout.addWidget(self.stop_cmd_button, 1, 1, 1, 1)
+        
+    def write_commands(self):
+        if not self.vars_tab.ask_radioButton.isChecked():
+            ok = True
+        else:
+            # check if any of them is not empty
+            ok = not(self.cmd_init_edit.toPlainText() or self.cmd_loop_edit.toPlainText())
+        if not ok:
+            reply = QtGui.QMessageBox.question(self, "Cmd overwrite",
+                                            "Commands are already defined:\nare you sure you want to overwrite them?",
+                                            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                            QtGui.QMessageBox.No)
+            ok = reply == QtGui.QMessageBox.Yes
+        if ok:
+            init_prog = self.build_init()
+            loop_prog = self.build_loop()
+    #        print init_prog
+    #        print loop_prog
+            print "Autowriting commands"
+            self.cmd_init_edit.setText(init_prog)
+            self.cmd_loop_edit.setText(loop_prog)
+        
+    def build_init(self):
+        variables = self.vars_tab.variables
+        #TODO: check if we need to futurize all the programs as well
+        prog = u"" #"from __future__ import print_function"
+        prog += "import numpy as np\n"
+        # set_var in the init is optional, as it is done implicitly while reading the programTable
+#        for var in variables:
+#            prog += "cmd.set_var('%s', 0)\n"%var.name
+        if self.operation is None: #1 single variable
+            var = variables[0]
+            prog += "iters = np.arange(%g, %g, %g)\n"%(var.start, var.stop, var.step)
+        else:
+            
+            arr_names = ["%s_arr"%var.name for var in variables]
+            if self.operation == 'plus':
+                for var, name in zip(variables, arr_names):
+                    prog += "%s = np.arange(%g, %g, %g)\n"%(name, var.start, var.stop, var.step)
+                prog += "iters = list(zip(%s))\n"%', '.join(arr_names)
+                
+            elif self.operation == 'times':
+                prog += "%s = np.mgrid["%(', '.join(arr_names))
+                for var, name in zip(variables, arr_names):
+                    prog += "%g:%g:%g, "%(var.start, var.stop, var.step)
+                prog += "]\n"
+                prog += "iters = list(zip(%s))\n"%', '.join(["%s.ravel()"%n for n in arr_names])
+        prog += "j = 0\n"
+        return prog
+        
+    def build_loop(self):
+        prog = ""
+        variables = self.vars_tab.variables
+        val_names = ["%s1"%var.name for var in variables]
+        
+        prog += "%s = iters[j]\n"%', '.join(val_names)
+        _set = ""
+        _out = u"'Run #%d/%d, with variables:\\n"
+        for var, value in zip(variables, val_names):
+            _set += "cmd.set_var('{0:s}', {1:s})\n".format(var.name, value)
+            _out += u"{:s} = %g\\n".format(var.name)
+        _out += u"'%(j+1, len(iters), {:s})".format(', '.join(val_names))
+        prog += _set
+        prog += "print('\\n-------o-------')\n"
+        prog += "print(" + _out + ")\n"
+        prog += "cmd.run(wait_end=True, add_time={:d})\n".format(self.vars_tab.wait_spinBox.value())
+        prog += "j += 1\n"
+        prog += "if j == len(iters):\n" + " "*4 + "cmd.stop()\n"
+        return prog
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
