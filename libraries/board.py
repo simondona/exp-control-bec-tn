@@ -20,7 +20,10 @@
 
 class Board(object):
     def __init__(self, address, name="", comment=""):
-        self.address = int(address)
+        if address is not None:    
+            self.address = int(address)
+        else:
+            self.address = int(2**16 - 1)
         self.name = str(name)
         self.comment = str(comment)
 

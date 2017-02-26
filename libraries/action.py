@@ -153,11 +153,14 @@ class AnalogAction(DataAction):
 
         return data
 
+###### FIXME: the address of the (fake) board associated with these actions cannot be the same as a true board
+###### Fixed: in board.py a None address is translated into the highest possible value (2**16 - 1)
+
 class NopAction(Action):
     def __init__(self, system, name="NOP"):
         super(NopAction, self).__init__(system, name)
         self.command_bits = 0b00100000
-        self.board = lib_board.Board(0)
+        self.board = lib_board.Board(None)
 
     def do_action(self):
         return 0
@@ -166,7 +169,7 @@ class BreakpointAction(Action):
     def __init__(self, system, name="BREAKPOINT"):
         super(BreakpointAction, self).__init__(system, name)
         self.command_bits = 0b00010000
-        self.board = lib_board.Board(0)
+        self.board = lib_board.Board(None)
 
     def do_action(self):
         return 0
@@ -175,7 +178,7 @@ class EndAction(Action):
     def __init__(self, system, name="END"):
         super(EndAction, self).__init__(system, name)
         self.command_bits = 0b10000000
-        self.board = lib_board.Board(0)
+        self.board = lib_board.Board(None)
 
     def do_action(self):
         return 0
