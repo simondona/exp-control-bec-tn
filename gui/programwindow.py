@@ -19,6 +19,8 @@
 #pylint: disable-msg=E1101
 
 from functools import partial
+# copyramp button
+from subprocess import call
 
 from gui.constants import RED, GREEN, BLUE
 import gui.programwidget
@@ -76,7 +78,7 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         right_layout = QtGui.QGridLayout(right_widget)
 
         right_widget.setMinimumWidth(160)
-        right_widget.setMaximumWidth(300)
+        right_widget.setMaximumWidth(350)
 
         main_layout.addWidget(self.table_widget)
         main_layout.addWidget(right_widget)
@@ -134,6 +136,16 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         check_fpga_button.clicked.connect(partial(self.table_widget.table.update_fpgas, init=False))
         right_layout.addWidget(check_fpga_button, 5, 1, 1, 1)
 
+		# copyramp button:
+        # added button
+        # connected to on_copyramp defined at line 279
+        # moved iter_cmd_tabwidget from 6 to 7
+        copyramp_button = QtGui.QPushButton("Copy Evaporation ramp")
+        copyramp_button.setToolTip("copies and translates the ramp from the little computer")
+        copyramp_button.clicked.connect(self.on_copyramp)
+        copyramp_button.setStyleSheet("color: %s"%RED)
+        right_layout.addWidget(copyramp_button, 6, 0, 1, 2)
+
 
         #iterations/commands tab
         iter_cmd_tabwidget = QtGui.QTabWidget(self)
@@ -144,7 +156,7 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         iter_cmd_tabwidget.addTab(iter_widget, "Iterations")
         iter_cmd_tabwidget.addTab(cmd_widget, "Commands")
 
-        right_layout.addWidget(iter_cmd_tabwidget, 6, 0, 1, 2)
+        right_layout.addWidget(iter_cmd_tabwidget, 7, 0, 1, 2)
 
 
         #commands tab
@@ -269,6 +281,12 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
 
         self.set_progressbar_value(0)
         self.table_widget.table.update_fpgas(init=False)
+
+    def on_copyramp(self):
+        #call('rsync -v bec@10.194.33.62:~/RampGenerator/"Evaporation\ Ramp.sub" ./test/Evaporation\ Ramp.sub',
+        #     shell=True)
+        #call('python ./test/labview_converter_evapramp_data.py', shell=True)
+		call('sh ./copyramp/copyramp.sh', shell=True)
 
     def on_cmd_changed(self):
         self.table_widget.table.cmd_str = (str(self.cmd_init_edit.toPlainText()),
