@@ -154,7 +154,7 @@ class AnalogAction(DataAction):
         return data
 
 ###### FIXME: the address of the (fake) board associated with these actions cannot be the same as a true board
-###### Fixed: in board.py a None address is translated into the highest possible value (2**16 - 1)
+###### Fixed: in board.py a None address is translated into the highest possible value (2**8 - 1)
 
 class NopAction(Action):
     def __init__(self, system, name="NOP"):

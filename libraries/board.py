@@ -23,7 +23,7 @@ class Board(object):
         if address is not None:    
             self.address = int(address)
         else:
-            self.address = int(2**16 - 1)
+            self.address = int(2**8 -1)
         self.name = str(name)
         self.comment = str(comment)
 
