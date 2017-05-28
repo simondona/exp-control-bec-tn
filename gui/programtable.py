@@ -523,7 +523,7 @@ class ProgramTable(QtGui.QTableWidget, object):
 #            tot_state = tot_state and not state.running
 #        if not tot_state:
 #            reply = QtGui.QMessageBox.question(self, 'FPGA warning',
-#                                               "Another program is running on one or more FPGAs,\nare you shure to launch a new one?",
+#                                               "Another program is running on one or more FPGAs,\nare you sure to launch a new one?",
 #                                               QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
 #                                               QtGui.QMessageBox.No)
 #            tot_state = reply == QtGui.QMessageBox.Yes
