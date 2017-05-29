@@ -34,11 +34,15 @@ class DigitalBoard(Board):
         for chn in range(tot_ch):
             self.channels[chn+1] = {"state": False}
 
-    def set_status(self, channel, status):
+    def set_status(self, channel, status, threshold=None):
         if channel is not None:
             channel = int(channel)
             if self.channels.has_key(channel):
-                self.channels[channel]["state"] = bool(status)
+#                print channel, status, threshold
+                if threshold is not None:
+                    self.channels[channel]["state"] = bool(float(status)>threshold)
+                else:
+                    self.channels[channel]["state"] = bool(status)
             else:
                 print "ERROR: wrong channel selection in Digital board \"%s\", valid channels are %s"%(self.name, str(self.channels.keys()))
         else:

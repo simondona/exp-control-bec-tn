@@ -223,7 +223,7 @@ class ProgramTable(QtGui.QTableWidget, object):
                         new_item.setFlags(new_item.flags()&~QtCore.Qt.ItemIsEnabled)
 
                     if self.extended_view and not row["enable_parent"]:
-                        new_item.setBackgroundColor(QtCore.Qt.lightGray)
+                        new_item.setBackground(QtCore.Qt.lightGray)
                         font = QtGui.QFont()
                         font.setItalic(True)
                         new_item.setFont(font)
