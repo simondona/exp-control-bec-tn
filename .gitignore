@@ -9,6 +9,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# spyproject
+.spyproject/*
+
 # C extensions
 *.so
 
