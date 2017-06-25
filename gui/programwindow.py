@@ -27,6 +27,7 @@ import gui.programwidget
 import gui.defaultsettings
 import gui.plotactions
 import gui.commandwidget
+import gui.rampgenwidget
 
 import PySide.QtGui as QtGui
 import PySide.QtCore as QtCore
@@ -253,7 +254,10 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         #call('rsync -v bec@10.194.33.62:~/RampGenerator/"Evaporation\ Ramp.sub" ./test/Evaporation\ Ramp.sub',
         #     shell=True)
         #call('python ./test/labview_converter_evapramp_data.py', shell=True)
-		call('sh ./copyramp/copyramp.sh', shell=True)
+#		call('sh ./copyramp/copyramp.sh', shell=True)
+        if not hasattr(self, 'rampgendialog'):
+            self.rampgendialog = gui.rampgenwidget.RampGenDialog(self)
+        self.rampgendialog.show()
 
     def on_cmd_changed(self):
         self.table_widget.table.cmd_str = (str(self.cmd_init_edit.toPlainText()),
