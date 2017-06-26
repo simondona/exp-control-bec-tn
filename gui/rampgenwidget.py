@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from functools import partial
 import numpy as np
 
 import matplotlib
@@ -52,53 +51,49 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
     def __init__(self, parent, *args, **kwargs):
         super(RampGenDialog, self).__init__(parent=parent, *args, **kwargs)
         self.setupUi(self)
-        self.connectButtons()
+        self.connectUi()
         self.setupPlotWidget(self.rampPlotWidget)
         
-        self.currentRampName = '---'
+        self._currentRampName = None
+        self.rampNameLabel.setText(str(self._currentRampName))
+        self.saveDir = os.path.abspath('data/evaporation')
+        print(self.saveDir)
         
         self.headers = ['npoints', 't0', 't1', 'x0', 'x1', 'amp0', 'amp1', 'omit', 'dt', 'slope', 'Add', 'Remove']
         self.headers_row = self.headers[:8]
         self.default_row = dict(zip(self.headers_row,
                                     [100, 0., 100., 60., 50., 1000, 1000, False, ]))
+        self.times = np.empty(100,)
+        self.freqs = np.empty(100,)
+        self.amps  = np.empty(100,)
         self.setupTable(self.table)
         
+    @property
+    def currentRampName(self):
+        return self._currentRampName
+    @currentRampName.setter
+    def currentRampName(self, value):
+        self._currentRampName = value
+        self.rampNameLabel.setText(str(value))
         
     @property
-    def times(self):
-        v = []
-        for index in range(self.table.rowCount()):
-            row = self.readTableRow(index)
-            if not row['omit']:
-                v.append(np.linspace(row['t0'], row['t1'], row['npoints']))
-        try:
-            return np.concatenate(v)
-        except ValueError:
-            return np.asarray([])
+    def fcut(self):
+        return self.fcutDoubleSpinBox.value()
     
     @property
-    def freqs(self):
-        v = []
-        for index in range(self.table.rowCount()):
-            row = self.readTableRow(index)
-            if not row['omit']:
-                v.append(np.linspace(row['x0'], row['x1'], row['npoints']))
-        try:
-            return np.concatenate(v)
-        except ValueError:
-            return np.asarray([])
+    def npoints(self):
+        self.npointsLabel.setText(str(int(len(self.times))))
+        return len(self.times)
     
     @property
-    def amps(self):
-        v = []
-        for index in range(self.table.rowCount()):
-            row = self.readTableRow(index)
-            if not row['omit']:
-                v.append(np.linspace(row['amp0'], row['amp1'], row['npoints']))
+    def tfinal(self):
         try:
-            return np.concatenate(v)
-        except ValueError:
-            return np.asarray([])
+            tf = self.times[-1]
+        except IndexError as e:
+            print(e)
+            tf = np.nan
+        self.tfinalLabel.setText(str(tf))
+        return tf
         
         
     def insertRow(self, index, row=None):
@@ -115,7 +110,7 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         self.table.blockSignals(True)
         self.writeTableRow(index, row)
         self.table.blockSignals(False)
-        print('Added the {:d} row'.format(index))
+        print('Added the {:d} row'.format(index+1))
 
     
     def removeRow(self, index, force=False):
@@ -123,9 +118,15 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
             print("You shouldn't remove the last row!\n")
             return
         self.table.removeRow(index)
-        print('Removed the {:d} row'.format(index))
+        print('Removed the {:d} row'.format(index+1))
         print('There are {:d} rows left\n'.format(self.table.rowCount()))
-        self.plotRamps()
+        self.updateRamps()
+        
+    def clearTable(self,):
+        self.table.blockSignals(True)
+        for j in range(self.table.rowCount(), 0, -1):
+            self.removeRow(j-1, force=True)
+        self.table.blockSignals(False)
         
     def readTableRow(self, index):
         row = {}
@@ -136,15 +137,17 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
                 value = bool(item.checkState())
             elif head in ['npoints', 'amp0', 'amp1',]:
                 try:
-                    value = int(item.text())
+                    value = int(float(item.text()))
                 except ValueError as e:
                     print(e)
-                    value = np.nan
+                    print('Will cast to 0')
+                    value = 0
             elif head in ['t0', 't1', 'x0', 'x1',]:
                 try:
                     value = float(item.text())
                 except ValueError as e:
                     print(e)
+                    print('Will cast to nan')
                     value = np.nan
             row[head] = value
         return row
@@ -170,6 +173,7 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
                         slope = (row['x1'] - row['x0'])/(row['t1'] - row['t0'])
                     except ZeroDivisionError as e:
                         print(e)
+                        print('Will cast to nan')
                         slope = np.nan
                     witem.setText('{:.4f}'.format(slope*1e3))
                 elif head == 'Add':
@@ -185,11 +189,9 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
                 witem.setFlags(QtCore.Qt.ItemIsEnabled)
                 witem.setBackground(QtGui.QColor('lightGray'))
             self.table.setItem(index, col_index, witem)
-        self.plotRamps()
+        self.updateRamps()
 
-            
-        
-        
+
     @QtCore.Slot(QtGui.QTableWidgetItem)
     def updateRow(self, witem):
         index, col_index = witem.row(), witem.column()
@@ -199,9 +201,9 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         value = row[head]
         self.table.blockSignals(True)
         if head in ['npoints', 'amp0', 'amp1',]:
-            witem.setText('{:d}'.format(value))
+            witem.setText('{:d}'.format(int(float(value))))
         elif head in ['t0', 't1', 'x0', 'x1',]:
-            witem.setText('{:.2f}'.format(value))
+            witem.setText('{:.2f}'.format(float(value)))
         # update uneditable values (dt, slope)
         for head in ['dt', 'slope']:
             item = self.table.item(index, self.headers.index(head))
@@ -213,16 +215,97 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
                     slope = (row['x1'] - row['x0'])/(row['t1'] - row['t0'])
                 except ZeroDivisionError as e:
                     print(e)
+                    print('Will cast to nan')
                     slope = np.nan
                 item.setText('{:.4f}'.format(slope*1e3))
         # ramps are auto-updated via properties. Now plot
         self.table.blockSignals(False)
-        self.plotRamps()
+        self.updateRamps()
         
 
-    def connectButtons(self):
+
+        
+    def updateRamps(self):
+        t, f, a = [], [], []
+        for index in range(self.table.rowCount()):
+            row = self.readTableRow(index)
+            if not row['omit']:
+                t.append(np.linspace(row['t0'], row['t1'], row['npoints']))
+                f.append(np.linspace(row['x0'], row['x1'], row['npoints']))
+                a.append(np.linspace(row['amp0'], row['amp1'], row['npoints']))
+        try:
+            self.times = np.concatenate(t)
+            self.freqs = np.concatenate(f)
+            self.amps = np.concatenate(a)
+            self.fcutDoubleSpinBox.setMaximum(self.times.max())
+            J = np.where(self.freqs >= self.fcut)[0]
+            self.times = self.times[J]
+            self.freqs = self.freqs[J]
+            self.amps = self.amps[J]
+        except ValueError:
+            self.times = np.asarray([])
+            self.amps = np.asarray([])
+            self.freqs = np.asarray([])
+        self.npoints
+        self.tfinal
+        self.plotRamps()
+        
+    def plotRamps(self,):
+        self.axes_f.cla()
+        self.axes_f.plot(self.times, self.freqs, color='b', **self.plot_kwargs)
+        self.axes_f.grid(True)
+        self.axes_a.cla()
+        self.axes_a.plot(self.times, self.amps, color='r', **self.plot_kwargs)
+        self.canvas.draw()
+        
+
+            
+            
+    def new(self):
+        self.clearTable()
+        self.insertRow(0)
+        self.currentRampName = None
+        
+    def load(self,):
+        self.clearTable()
+        fileName = QtGui.QFileDialog.getOpenFileName(self,'Open file', 
+                                                     filter='Ramp txt/csv (*.txt *.csv)',
+                                                     dir=self.saveDir)[0]
+        print(fileName)
+        self.saveDir, self.currentRampName = os.path.split(fileName)
+        headers = ['npoints', 't0', 't1', 'x0', 'x1', 'amp0', 'amp1',]
+        A = np.genfromtxt(fileName, usecols=(1,2,3,4,5,6,7))
+        for index, values in enumerate(A):
+            row = {'omit': False,}
+            row.update(dict(zip(headers, values)))
+            self.insertRow(index, row)
+            
+    def save_as(self):
+        path = QtGui.QFileDialog.getSaveFileName(self,'Save as...', 
+                                                     filter='Ramp txt/csv (*.txt *.csv)',
+                                                     dir=self.saveDir)[0]
+        self.save_to_txt(path)
+        
+    def save_to_txt(self, path=None):
+        if path is None:
+            path = os.path.join(self.saveDir, os.path.splitext(str(self.currentRampName))[0]+'.txt')
+        else:
+            self.saveDir, self.currentRampName = os.path.split(path)
+        headers = ['npoints', 't0', 't1', 'x0', 'x1', 'amp0', 'amp1',]
+        A = []
+        for j in range(self.table.rowCount()):
+            row = self.readTableRow(j)
+            A.append(np.asarray([1,] + [row[k] for k in headers]))
+        np.savetxt(path, A, fmt=['%d']*2 + ['%.2f']*4 + ['%d']*2)
+        print('saved ramp as %s'%path)
+        
+            
+    def connectUi(self):
         self.loadPushButton.clicked.connect(self.load)
         self.newPushButton.clicked.connect(self.new)
+        self.savePushButton.clicked.connect(self.save_to_txt)
+        self.saveAsPushButton.clicked.connect(self.save_as)
+        self.fcutDoubleSpinBox.valueChanged.connect(self.updateRamps)
         
     def setupTable(self, table):
         self.horizHeader = table.horizontalHeader()
@@ -233,14 +316,15 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         table.itemChanged.connect(self.updateRow)
 #        table.blockSignals(True)
         self.insertRow(0)
-        self.setFixedWidth(self.horizHeader.length() + 60)
+        self.setFixedWidth(self.horizHeader.length() + 45)
     
     def setupPlotWidget(self, plotwidget):
         self.plot_kwargs = {'marker': 'o',
                             'ms': 4
                             }
-        self.figure, self.axes = plt.subplots(1,1, figsize=(4,3))
-        self.axes.plot(np.random.rand(10))
+        self.figure, self.axes_f = plt.subplots(1,1, figsize=(4,3))
+        self.axes_a = self.axes_f.twinx()
+        self.axes_a.plot(np.random.rand(10))
         self.figure.set_facecolor('none')
         self.canvas = FigureCanvas(self.figure)
         self.toolbar = NavigationToolbar(self.canvas, plotwidget, coordinates=False)
@@ -250,33 +334,4 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         self.plotwidgetLayout.addWidget(self.toolbar)
         plotwidget.setLayout(self.plotwidgetLayout)
         self.canvas.draw()
-        
-    def plotRamps(self,):
-        self.axes.cla()
-        self.axes.plot(self.times, self.freqs, **self.plot_kwargs)
-        self.axes.grid(True)
-        self.canvas.draw()
-        
-    def clearTable(self,):
-        for j in range(self.table.rowCount()):
-            self.removeRow(j, force=True)
-            
-            
-    def new(self):
-        self.clearTable()
-        self.insertRow(0)
-        
-    def load(self,):
-        self.clearTable()
-        fileName = QtGui.QFileDialog.getOpenFileName(self,'Open file', 
-                                                     filter='Ramp txt/csv (*.txt *.csv)',
-                                                     directory='data/evaporation')[0]
-        print(fileName)
-        headers_old = ['npoints', 't0', 't1', 'x0', 'x1', 'amp0', 'amp1',]
-        A = np.genfromtxt(fileName, usecols=(1,2,3,4,5,6,7))
-        for index, values in enumerate(A):
-            row = {'omit': False,}
-            row.update(dict(zip(headers_old, values)))
-            print(row)
-            self.insertRow(index, row)
 

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'rampgendialog.ui'
 #
-# Created: Mon Jun 26 03:59:13 2017
+# Created: Mon Jun 26 19:56:34 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PySide import QtCore, QtGui
 class Ui_RampGenDialog(object):
     def setupUi(self, RampGenDialog):
         RampGenDialog.setObjectName("RampGenDialog")
-        RampGenDialog.resize(874, 519)
+        RampGenDialog.resize(874, 646)
         self.verticalLayout = QtGui.QVBoxLayout(RampGenDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.table = QtGui.QTableWidget(RampGenDialog)
@@ -33,6 +33,7 @@ class Ui_RampGenDialog(object):
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
         self.savePushButton = QtGui.QPushButton(self.formWidget)
+        self.savePushButton.setAutoDefault(False)
         self.savePushButton.setObjectName("savePushButton")
         self.gridLayout.addWidget(self.savePushButton, 0, 2, 1, 1)
         self.rampNameFormLabel = QtGui.QLabel(self.formWidget)
@@ -44,6 +45,9 @@ class Ui_RampGenDialog(object):
         self.rampNameFormLabel.setObjectName("rampNameFormLabel")
         self.gridLayout.addWidget(self.rampNameFormLabel, 1, 0, 1, 1)
         self.fcutDoubleSpinBox = QtGui.QDoubleSpinBox(self.formWidget)
+        self.fcutDoubleSpinBox.setDecimals(3)
+        self.fcutDoubleSpinBox.setMaximum(99.999)
+        self.fcutDoubleSpinBox.setSingleStep(0.1)
         self.fcutDoubleSpinBox.setObjectName("fcutDoubleSpinBox")
         self.gridLayout.addWidget(self.fcutDoubleSpinBox, 3, 2, 1, 2)
         self.line = QtGui.QFrame(self.formWidget)
@@ -70,12 +74,15 @@ class Ui_RampGenDialog(object):
         self.fcutLabel.setObjectName("fcutLabel")
         self.gridLayout.addWidget(self.fcutLabel, 3, 0, 1, 2)
         self.newPushButton = QtGui.QPushButton(self.formWidget)
+        self.newPushButton.setAutoDefault(False)
         self.newPushButton.setObjectName("newPushButton")
         self.gridLayout.addWidget(self.newPushButton, 0, 0, 1, 1)
         self.loadPushButton = QtGui.QPushButton(self.formWidget)
+        self.loadPushButton.setAutoDefault(False)
         self.loadPushButton.setObjectName("loadPushButton")
         self.gridLayout.addWidget(self.loadPushButton, 0, 1, 1, 1)
         self.saveAsPushButton = QtGui.QPushButton(self.formWidget)
+        self.saveAsPushButton.setAutoDefault(False)
         self.saveAsPushButton.setObjectName("saveAsPushButton")
         self.gridLayout.addWidget(self.saveAsPushButton, 0, 3, 1, 1)
         self.npointsFormLabel = QtGui.QLabel(self.formWidget)
@@ -125,6 +132,8 @@ class Ui_RampGenDialog(object):
         self.rampPlotWidget = QtGui.QWidget(RampGenDialog)
         self.rampPlotWidget.setObjectName("rampPlotWidget")
         self.horizontalLayout.addWidget(self.rampPlotWidget)
+        self.horizontalLayout.setStretch(0, 1)
+        self.horizontalLayout.setStretch(1, 2)
         self.verticalLayout.addLayout(self.horizontalLayout)
 
         self.retranslateUi(RampGenDialog)
