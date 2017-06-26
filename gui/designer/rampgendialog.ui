@@ -131,7 +131,7 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0" colspan="4">
+        <item row="7" column="0" colspan="4">
          <widget class="QPushButton" name="writeOutPushButton">
           <property name="styleSheet">
            <string notr="true">QPushButton{color: red;}
@@ -142,7 +142,7 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0" colspan="4">
+        <item row="6" column="0" colspan="4">
          <widget class="Line" name="line_2">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -151,6 +151,38 @@
         </item>
         <item row="4" column="2" colspan="2">
          <widget class="QLabel" name="npointsLabel">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QLabel" name="tfinalFormLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>t final</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="indent">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="2" colspan="2">
+         <widget class="QLabel" name="tfinalLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string/>
           </property>

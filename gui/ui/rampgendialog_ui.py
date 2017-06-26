@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'rampgendialog.ui'
 #
-# Created: Sun Jun 25 20:06:45 2017
+# Created: Mon Jun 26 03:59:13 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -92,16 +92,35 @@ class Ui_RampGenDialog(object):
         self.writeOutPushButton.setStyleSheet("QPushButton{color: red;}\n"
 "")
         self.writeOutPushButton.setObjectName("writeOutPushButton")
-        self.gridLayout.addWidget(self.writeOutPushButton, 6, 0, 1, 4)
+        self.gridLayout.addWidget(self.writeOutPushButton, 7, 0, 1, 4)
         self.line_2 = QtGui.QFrame(self.formWidget)
         self.line_2.setFrameShape(QtGui.QFrame.HLine)
         self.line_2.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_2.setObjectName("line_2")
-        self.gridLayout.addWidget(self.line_2, 5, 0, 1, 4)
+        self.gridLayout.addWidget(self.line_2, 6, 0, 1, 4)
         self.npointsLabel = QtGui.QLabel(self.formWidget)
         self.npointsLabel.setText("")
         self.npointsLabel.setObjectName("npointsLabel")
         self.gridLayout.addWidget(self.npointsLabel, 4, 2, 1, 2)
+        self.tfinalFormLabel = QtGui.QLabel(self.formWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tfinalFormLabel.sizePolicy().hasHeightForWidth())
+        self.tfinalFormLabel.setSizePolicy(sizePolicy)
+        self.tfinalFormLabel.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.tfinalFormLabel.setIndent(10)
+        self.tfinalFormLabel.setObjectName("tfinalFormLabel")
+        self.gridLayout.addWidget(self.tfinalFormLabel, 5, 0, 1, 2)
+        self.tfinalLabel = QtGui.QLabel(self.formWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tfinalLabel.sizePolicy().hasHeightForWidth())
+        self.tfinalLabel.setSizePolicy(sizePolicy)
+        self.tfinalLabel.setText("")
+        self.tfinalLabel.setObjectName("tfinalLabel")
+        self.gridLayout.addWidget(self.tfinalLabel, 5, 2, 1, 2)
         self.horizontalLayout.addWidget(self.formWidget)
         self.rampPlotWidget = QtGui.QWidget(RampGenDialog)
         self.rampPlotWidget.setObjectName("rampPlotWidget")
@@ -122,4 +141,5 @@ class Ui_RampGenDialog(object):
         self.saveAsPushButton.setText(QtGui.QApplication.translate("RampGenDialog", "Save as...", None, QtGui.QApplication.UnicodeUTF8))
         self.npointsFormLabel.setText(QtGui.QApplication.translate("RampGenDialog", "N points", None, QtGui.QApplication.UnicodeUTF8))
         self.writeOutPushButton.setText(QtGui.QApplication.translate("RampGenDialog", "WRITE OUT", None, QtGui.QApplication.UnicodeUTF8))
+        self.tfinalFormLabel.setText(QtGui.QApplication.translate("RampGenDialog", "t final", None, QtGui.QApplication.UnicodeUTF8))
 

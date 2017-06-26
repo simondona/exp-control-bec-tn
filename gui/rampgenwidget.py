@@ -23,7 +23,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Qt4Agg")
 import matplotlib.pyplot as plt
-from matplotlib.colors import colorConverter as conv
+#from matplotlib.colors import colorConverter as conv
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
@@ -46,275 +46,194 @@ class QPushButtonIndexed(QtGui.QPushButton):
     def emit_next_index(self):
         self.nextIndexSignal.emit(self.index + 1)
 
-class RampRow():
-    def __init__(self, index=0, **kwargs):
-        self._ix = index
-        self._npoints = 100
-        self._t0 = 0.0
-        self._t1 = 100.0
-        self._x0 = 60.0
-        self._x1 = 40.0
-        self._amp0 = 1000
-        self._amp1 = 1000
-        self._omit = False
-        self.updateValues(kwargs)
-        
-    @property
-    def ix(self):
-        return self._ix
-    @ix.setter
-    def ix(self, value):
-        try:
-            self._ix = int(value)
-        except ValueError as e:
-            print(e)
-            return self._ix
-        
-    @property
-    def t0(self):
-        return self._t0
-    @t0.setter
-    def t0(self, value):
-        try:
-            self._t0 = float(value)
-        except ValueError as e:
-            print(e)
-            return self._t0
-        
-    @property
-    def t1(self):
-        return self._t1
-    @t1.setter
-    def t1(self, value):
-        try:
-            self._t1 = float(value)
-        except ValueError as e:
-            print(e)
-            return self._t1
-    
-    @property
-    def x0(self):
-        return self._x0
-    @x0.setter
-    def x0(self, value):
-        try:
-            self._x0 = float(value)
-        except ValueError as e:
-            print(e)
-            return self._x0
-    
-    @property
-    def x1(self):
-        return self._x1
-    @x1.setter
-    def x1(self, value):
-        try:
-            self._x1 = float(value)
-        except ValueError as e:
-            print(e)
-            return self._x1
-        
-    @property
-    def npoints(self):
-        return self._npoints
-    @npoints.setter
-    def npoints(self, value):
-        try:
-            self._npoints = int(value)
-        except ValueError as e:
-            print(e)
-            return self._npoints
-        
-    @property
-    def amp0(self):
-        return self._amp0
-    @amp0.setter
-    def amp0(self, value):
-        try:
-            self._amp0 = int(value)
-        except ValueError as e:
-            print(e)
-            return self._amp0
-    
-    @property
-    def amp1(self):
-        return self._amp1
-    @amp1.setter
-    def amp1(self, value):
-        try:
-            self._amp1 = int(value)
-        except ValueError as e:
-            print(e)
-            return self._amp1
-        
-    @property
-    def omit(self):
-        return self._omit
-    @omit.setter
-    def omit(self, value):
-        try:
-            self._omit = bool(value)
-        except ValueError as e:
-            print(e)
-            return self._omit
-        
-    @property
-    def slope(self):
-        return (self.x1 - self.x0)/(self.t1 - self.t0)
-    
-    @property
-    def times(self):
-        return np.linspace(self.t0, self.t1, self.npoints)
-    
-    @property
-    def freqs(self):
-        return np.linspace(self.x0, self.x1, self.npoints)
-    
-    @property
-    def amps(self):
-        return np.linspace(self.amp0, self.amp1, self.npoints)
 
-        
-    def updateValues(self, dictV): # è più corretto settare gli attributi uno a uno
-        for k in dictV:
-            if hasattr(self, k):
-                setattr(self, k, dictV[k])
-    
-    
 
 class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
     def __init__(self, parent, *args, **kwargs):
         super(RampGenDialog, self).__init__(parent=parent, *args, **kwargs)
         self.setupUi(self)
+        self.connectButtons()
         self.setupPlotWidget(self.rampPlotWidget)
         
-        self.headers = ['ix', 'npoints', 't0', 't1', 'x0', 'x1', 'slope', 'amp0', 'amp1', 'omit', 'Add', 'Remove']
-        self.rowsList = []
+        self.currentRampName = '---'
+        
+        self.headers = ['npoints', 't0', 't1', 'x0', 'x1', 'amp0', 'amp1', 'omit', 'dt', 'slope', 'Add', 'Remove']
+        self.headers_row = self.headers[:8]
+        self.default_row = dict(zip(self.headers_row,
+                                    [100, 0., 100., 60., 50., 1000, 1000, False, ]))
         self.setupTable(self.table)
         
         
     @property
-    def times_ramp(self):
+    def times(self):
+        v = []
+        for index in range(self.table.rowCount()):
+            row = self.readTableRow(index)
+            if not row['omit']:
+                v.append(np.linspace(row['t0'], row['t1'], row['npoints']))
         try:
-            return np.concatenate([r.times for r in self.rowsList if r.omit is not True])
+            return np.concatenate(v)
         except ValueError:
             return np.asarray([])
     
     @property
-    def freqs_ramp(self):
+    def freqs(self):
+        v = []
+        for index in range(self.table.rowCount()):
+            row = self.readTableRow(index)
+            if not row['omit']:
+                v.append(np.linspace(row['x0'], row['x1'], row['npoints']))
         try:
-            return np.concatenate([r.freqs for r in self.rowsList if r.omit is not True])
+            return np.concatenate(v)
         except ValueError:
             return np.asarray([])
     
     @property
-    def amps_ramp(self):
+    def amps(self):
+        v = []
+        for index in range(self.table.rowCount()):
+            row = self.readTableRow(index)
+            if not row['omit']:
+                v.append(np.linspace(row['amp0'], row['amp1'], row['npoints']))
         try:
-            return np.concatenate([r.amps for r in self.rowsList if r.omit is not True])
+            return np.concatenate(v)
         except ValueError:
             return np.asarray([])
         
         
-        
-    def insertRow(self, index, initV=None):
-        if initV is None and index > 0:
-            print(index)
-            lastRow = self.rowsList[index-1]
-            initV = {'t0': lastRow.t1,
-                     't1': lastRow.t1 + 100.0,
-                     'x0': lastRow.x1,
-                     'x1': lastRow.x1 - 10.0,}
-            newRow = RampRow(index, **initV)
-        else:
-            newRow = RampRow(index)
+    def insertRow(self, index, row=None):
+        if row is None:
+            row = self.default_row.copy()
+            if index > 0:
+                print(index)
+                lastRow = self.readTableRow(index-1)
+                row.update({'t0': lastRow['t1'],
+                               't1': lastRow['t1'] + 100.0,
+                               'x0': lastRow['x1'],
+                               'x1': lastRow['x1'] - 10.0,})
         self.table.insertRow(index)
         self.table.blockSignals(True)
-        self.writeTableRow(index, newRow)
+        self.writeTableRow(index, row)
         self.table.blockSignals(False)
-        self.rowsList.insert(index, newRow)
         print('Added the {:d} row'.format(index))
-        self.plotRamps()
 
     
-    def removeRow(self, index):
-        if self.table.rowCount() == 1:
+    def removeRow(self, index, force=False):
+        if self.table.rowCount() == 1 and not force:
             print("You shouldn't remove the last row!\n")
             return
         self.table.removeRow(index)
-        self.rowsList.pop(index)
         print('Removed the {:d} row'.format(index))
         print('There are {:d} rows left\n'.format(self.table.rowCount()))
         self.plotRamps()
         
+    def readTableRow(self, index):
+        row = {}
+        for head in self.headers_row:
+            col_index = self.headers.index(head)
+            item = self.table.item(index, col_index)
+            if head in ['omit',]:
+                value = bool(item.checkState())
+            elif head in ['npoints', 'amp0', 'amp1',]:
+                try:
+                    value = int(item.text())
+                except ValueError as e:
+                    print(e)
+                    value = np.nan
+            elif head in ['t0', 't1', 'x0', 'x1',]:
+                try:
+                    value = float(item.text())
+                except ValueError as e:
+                    print(e)
+                    value = np.nan
+            row[head] = value
+        return row
+        
     def writeTableRow(self, index, row):
         for col_index, head in enumerate(self.headers):
-            if hasattr(row, head):
+            witem = QtGui.QTableWidgetItem()
+            if head in row:
     #            print('writing ',head)
-                item = getattr(row, head)
+                value = row[head]
                 if head in ['omit',]:
-                    witem = QtGui.QTableWidgetItem()
-                    witem.setCheckState(QtCore.Qt.CheckState(item))
-                    self.table.setItem(index, col_index, witem)
-                elif head in ['ix', 'npoints', 'amp0', 'amp1',]:
-                    witem = QtGui.QTableWidgetItem('{:d}'.format(item))
-                    self.table.setItem(index, col_index, witem)
+                    witem.setCheckState(QtCore.Qt.CheckState(bool(value)))
+                elif head in ['npoints', 'amp0', 'amp1',]:
+                    witem.setText('{:d}'.format(int(value)))
                 elif head in ['t0', 't1', 'x0', 'x1',]:
-                    witem = QtGui.QTableWidgetItem('{:.2f}'.format(item))
-                    self.table.setItem(index, col_index, witem)
-                elif head in ['slope',]:
-                    witem = QtGui.QTableWidgetItem('{:.4f}'.format(item))
-                    witem.setFlags(QtCore.Qt.ItemIsEnabled)
-    #                witem.setTextColor(QtGui.QColor('gray'))
-                    self.table.setItem(index, col_index, witem)
-            elif head == 'Add':
-#                    void_item = QtGui.QTableWidgetItem()
-#                    self.setItem(index, col_index, void_item)
-                witem = QPushButtonIndexed(index, text='Add',)
-                self.table.setCellWidget(index, col_index, witem)
-                witem.nextIndexSignal.connect(self.insertRow)
-            else: # head == 'Add':
-                witem = QPushButtonIndexed(index, text='Remove')
-                self.table.setCellWidget(index, col_index, witem)
-                witem.indexSignal.connect(self.removeRow)
-#        [self.table.resizeColumnToContents(j) for j in [0,1,2]]
-        
-        
-    @QtCore.Slot(QtGui.QTableWidgetItem)
-    def update_row(self, item):
-        #TODO: handle exceptions for wrong data typed in
-        dicV = {}
-#        item = self.sender()
-        print(item)
-        index = item.row()
-        col_index = item.column()
-        head = self.headers[col_index]
-#        for col_index, head in enumerate(self.headers):
-        if head in ['omit']:
-            dicV.update({head: bool(item.checkState())})
-
-        else:
-#                item = self.item(index, col_index)                
-            dicV.update({head: float(item.text())})
-        print("I'm changing row ", index)
-        print('dic:', dicV)
-        row = self.rowsList[index]
-        row.updateValues(dicV)
-#        self.table.blockSignals(True)
-#        self.writeTableRow(index, row)
-#        self.table.blockSignals(False)
+                    witem.setText('{:.2f}'.format(float(value)))
+            else:
+                if head == 'dt':
+                    dt = row['t1'] - row['t0']
+                    witem.setText('{:.4f}'.format(dt))
+                elif head == 'slope':
+                    try:
+                        slope = (row['x1'] - row['x0'])/(row['t1'] - row['t0'])
+                    except ZeroDivisionError as e:
+                        print(e)
+                        slope = np.nan
+                    witem.setText('{:.4f}'.format(slope*1e3))
+                elif head == 'Add':
+                    widg = QPushButtonIndexed(index, text='Add',)
+                    self.table.setCellWidget(index, col_index, widg)
+                    widg.nextIndexSignal.connect(self.insertRow)
+                elif head == 'Remove' and index > 0:
+                    widg = QPushButtonIndexed(index, text='Remove')
+                    self.table.setCellWidget(index, col_index, widg)
+                    widg.indexSignal.connect(self.removeRow)
+                else:
+                    pass
+                witem.setFlags(QtCore.Qt.ItemIsEnabled)
+                witem.setBackground(QtGui.QColor('lightGray'))
+            self.table.setItem(index, col_index, witem)
         self.plotRamps()
 
             
         
+        
+    @QtCore.Slot(QtGui.QTableWidgetItem)
+    def updateRow(self, witem):
+        index, col_index = witem.row(), witem.column()
+        head = self.headers[col_index]
+        # read updated values and format
+        row = self.readTableRow(index)
+        value = row[head]
+        self.table.blockSignals(True)
+        if head in ['npoints', 'amp0', 'amp1',]:
+            witem.setText('{:d}'.format(value))
+        elif head in ['t0', 't1', 'x0', 'x1',]:
+            witem.setText('{:.2f}'.format(value))
+        # update uneditable values (dt, slope)
+        for head in ['dt', 'slope']:
+            item = self.table.item(index, self.headers.index(head))
+            if head == 'dt':
+                dt = row['t1'] - row['t0']
+                item.setText('{:.4f}'.format(dt))
+            elif head == 'slope':
+                try:
+                    slope = (row['x1'] - row['x0'])/(row['t1'] - row['t0'])
+                except ZeroDivisionError as e:
+                    print(e)
+                    slope = np.nan
+                item.setText('{:.4f}'.format(slope*1e3))
+        # ramps are auto-updated via properties. Now plot
+        self.table.blockSignals(False)
+        self.plotRamps()
+        
+
+    def connectButtons(self):
+        self.loadPushButton.clicked.connect(self.load)
+        self.newPushButton.clicked.connect(self.new)
+        
     def setupTable(self, table):
-        horizHeader = table.horizontalHeader()
-#        horizHeader.setStretchLastSection(True)
+        self.horizHeader = table.horizontalHeader()
+        self.vertHeader = table.verticalHeader()
+        self.vertHeader.setVisible(True)
         table.setColumnCount(len(self.headers))
         table.setHorizontalHeaderLabels(self.headers)                
-        table.itemChanged.connect(self.update_row)
-        table.blockSignals(True)
+        table.itemChanged.connect(self.updateRow)
+#        table.blockSignals(True)
         self.insertRow(0)
-        self.setFixedWidth(horizHeader.length() + 60)
+        self.setFixedWidth(self.horizHeader.length() + 60)
     
     def setupPlotWidget(self, plotwidget):
         self.plot_kwargs = {'marker': 'o',
@@ -334,8 +253,30 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         
     def plotRamps(self,):
         self.axes.cla()
-        self.axes.plot(self.times_ramp, self.freqs_ramp, **self.plot_kwargs)
+        self.axes.plot(self.times, self.freqs, **self.plot_kwargs)
         self.axes.grid(True)
         self.canvas.draw()
         
+    def clearTable(self,):
+        for j in range(self.table.rowCount()):
+            self.removeRow(j, force=True)
+            
+            
+    def new(self):
+        self.clearTable()
+        self.insertRow(0)
+        
+    def load(self,):
+        self.clearTable()
+        fileName = QtGui.QFileDialog.getOpenFileName(self,'Open file', 
+                                                     filter='Ramp txt/csv (*.txt *.csv)',
+                                                     directory='data/evaporation')[0]
+        print(fileName)
+        headers_old = ['npoints', 't0', 't1', 'x0', 'x1', 'amp0', 'amp1',]
+        A = np.genfromtxt(fileName, usecols=(1,2,3,4,5,6,7))
+        for index, values in enumerate(A):
+            row = {'omit': False,}
+            row.update(dict(zip(headers_old, values)))
+            print(row)
+            self.insertRow(index, row)
 
