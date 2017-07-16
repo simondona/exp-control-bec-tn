@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'rampgendialog.ui'
 #
-# Created: Mon Jun 26 19:56:34 2017
+# Created: Sun Jul 16 13:30:53 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -98,6 +98,7 @@ class Ui_RampGenDialog(object):
         self.writeOutPushButton = QtGui.QPushButton(self.formWidget)
         self.writeOutPushButton.setStyleSheet("QPushButton{color: red;}\n"
 "")
+        self.writeOutPushButton.setAutoDefault(False)
         self.writeOutPushButton.setObjectName("writeOutPushButton")
         self.gridLayout.addWidget(self.writeOutPushButton, 7, 0, 1, 4)
         self.line_2 = QtGui.QFrame(self.formWidget)

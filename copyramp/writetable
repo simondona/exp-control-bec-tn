@@ -1,0 +1,1 @@
+echo 'exec local/remote writetable on ' $1

@@ -29,11 +29,12 @@ import libraries.fpga as lib_fpga
 import libraries.action as lib_action
 import libraries.program as lib_program
 import libraries.ramp as lib_ramp
+import libraries.evaporation_ramp as lib_evap
 from libraries import init_boards, init_actions, init_programs
 import os, sys
 
 #change path
-os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+#os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 class System(object):
     _time_base = 10e6
@@ -60,6 +61,7 @@ class System(object):
         self.variables = dict()
         self.cmd_thread = lib_syscommand.SysCommand(self)
         self.parser = lib_parser.Parser(self)
+        self.evap_ramp_gen = lib_evap.EvaporationRampGen(self)
     
     @property    
     def all_fpga_ready(self):

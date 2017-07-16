@@ -48,13 +48,15 @@ class QPushButtonIndexed(QtGui.QPushButton):
 
 
 class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, system, *args, **kwargs):
         super(RampGenDialog, self).__init__(parent=parent, *args, **kwargs)
+        self.parent = parent
+        self.system = system
         self.setupUi(self)
         self.connectUi()
         self.setupPlotWidget(self.rampPlotWidget)
         
-        self._currentRampName = None
+        self._currentRampName = self.parent.settings.last_evap_ramp
         self.rampNameLabel.setText(str(self._currentRampName))
         self.saveDir = os.path.abspath('data/evaporation')
         print(self.saveDir)
@@ -74,6 +76,7 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
     @currentRampName.setter
     def currentRampName(self, value):
         self._currentRampName = value
+        self.parent.settings.last_evap_ramp = value
         self.rampNameLabel.setText(str(value))
         
     @property
@@ -178,10 +181,12 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
                     witem.setText('{:.4f}'.format(slope*1e3))
                 elif head == 'Add':
                     widg = QPushButtonIndexed(index, text='Add',)
+                    widg.setAutoDefault(False)
                     self.table.setCellWidget(index, col_index, widg)
                     widg.nextIndexSignal.connect(self.insertRow)
                 elif head == 'Remove' and index > 0:
                     widg = QPushButtonIndexed(index, text='Remove')
+                    widg.setAutoDefault(False)
                     self.table.setCellWidget(index, col_index, widg)
                     widg.indexSignal.connect(self.removeRow)
                 else:
@@ -230,9 +235,9 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         for index in range(self.table.rowCount()):
             row = self.readTableRow(index)
             if not row['omit']:
-                t.append(np.linspace(row['t0'], row['t1'], row['npoints']))
-                f.append(np.linspace(row['x0'], row['x1'], row['npoints']))
-                a.append(np.linspace(row['amp0'], row['amp1'], row['npoints']))
+                t.append(np.linspace(row['t0'], row['t1'], row['npoints'], endpoint=False))
+                f.append(np.linspace(row['x0'], row['x1'], row['npoints'], endpoint=False))
+                a.append(np.linspace(row['amp0'], row['amp1'], row['npoints'], endpoint=False))
         try:
             self.times = np.concatenate(t)
             self.freqs = np.concatenate(f)
@@ -242,21 +247,31 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
             self.times = self.times[J]
             self.freqs = self.freqs[J]
             self.amps = self.amps[J]
+            self.amps[-1] = 1
         except ValueError:
             self.times = np.asarray([])
             self.amps = np.asarray([])
             self.freqs = np.asarray([])
-        self.npoints
-        self.tfinal
+        self.npoints, self.tfinal
         self.plotRamps()
         
     def plotRamps(self,):
         self.axes_f.cla()
-        self.axes_f.plot(self.times, self.freqs, color='b', **self.plot_kwargs)
+        lf, = self.axes_f.plot(self.times, self.freqs, color='b', label='freq', **self.plot_kwargs)
         self.axes_f.grid(True)
+        self.color_axes(self.axes_f, 'b')
         self.axes_a.cla()
-        self.axes_a.plot(self.times, self.amps, color='r', **self.plot_kwargs)
+        la, = self.axes_a.plot(self.times, self.amps, color='r', label='amp', **self.plot_kwargs)
+        self.color_axes(self.axes_a, 'r', position='right')
+        lines = [lf, la]
+        labels = [line.get_label() for line in lines]
+        self.axes_f.legend(lines, labels, loc=3)
         self.canvas.draw()
+        
+    def color_axes(self, ax, color, position='left'):
+        ax.spines[position].set_color(color)
+#        ax.xaxis.label.set_color('red')
+        ax.tick_params(axis='y', colors=color)
         
 
             
@@ -266,13 +281,14 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         self.insertRow(0)
         self.currentRampName = None
         
-    def load(self,):
+    def load(self, fileName=None):
         self.clearTable()
-        fileName = QtGui.QFileDialog.getOpenFileName(self,'Open file', 
-                                                     filter='Ramp txt/csv (*.txt *.csv)',
-                                                     dir=self.saveDir)[0]
-        print(fileName)
-        self.saveDir, self.currentRampName = os.path.split(fileName)
+        if fileName is None:
+            fileName = QtGui.QFileDialog.getOpenFileName(self,'Open file', 
+                                                         filter='Ramp txt/csv (*.txt *.csv)',
+                                                         dir=self.saveDir)[0]
+            print(fileName)
+            self.saveDir, self.currentRampName = os.path.split(fileName)
         headers = ['npoints', 't0', 't1', 'x0', 'x1', 'amp0', 'amp1',]
         A = np.genfromtxt(fileName, usecols=(1,2,3,4,5,6,7))
         for index, values in enumerate(A):
@@ -299,6 +315,11 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         np.savetxt(path, A, fmt=['%d']*2 + ['%.2f']*4 + ['%d']*2)
         print('saved ramp as %s'%path)
         
+    def on_write_out(self,):
+        self.system.evap_ramp_gen.write_out(times=self.times,
+                                            freqs=self.freqs,
+                                            amps=self.amps)
+        
             
     def connectUi(self):
         self.loadPushButton.clicked.connect(self.load)
@@ -306,6 +327,7 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         self.savePushButton.clicked.connect(self.save_to_txt)
         self.saveAsPushButton.clicked.connect(self.save_as)
         self.fcutDoubleSpinBox.valueChanged.connect(self.updateRamps)
+        self.writeOutPushButton.clicked.connect(self.on_write_out)
         
     def setupTable(self, table):
         self.horizHeader = table.horizontalHeader()
@@ -315,12 +337,17 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         table.setHorizontalHeaderLabels(self.headers)                
         table.itemChanged.connect(self.updateRow)
 #        table.blockSignals(True)
-        self.insertRow(0)
+        if self.currentRampName is None:
+            self.insertRow(0)
+        else:
+            path = os.path.join(self.saveDir, self.currentRampName)
+            self.load(path)
         self.setFixedWidth(self.horizHeader.length() + 45)
     
     def setupPlotWidget(self, plotwidget):
         self.plot_kwargs = {'marker': 'o',
-                            'ms': 4
+                            'ms': 4,
+                            'ls': '-',
                             }
         self.figure, self.axes_f = plt.subplots(1,1, figsize=(4,3))
         self.axes_a = self.axes_f.twinx()
