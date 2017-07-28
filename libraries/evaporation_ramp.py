@@ -24,7 +24,7 @@ ACT_NAME = 'Evaporation'
 SUB_NAME = 'Evaporation Ramp.sub'
 
 DDS_PATH = "copyramp"
-WRITATABLE = os.path.join(DDS_PATH, 'writetable')
+WRITETABLE = os.path.join(DDS_PATH, 'exec_writetable')
 
 class EvaporationRampGen(object):
     def __init__(self, system):
@@ -82,6 +82,9 @@ class EvaporationRampGen(object):
         self.write_prg(prg)
         print('Writing xml')
         xml = self.build_xml_list(freqs, amps)
+        #path, xml_name = os.path.split(self.write_xml(xml))
         xml_name = self.write_xml(xml)
-        call('sh ./%s %s'%(WRITATABLE, xml_name), shell=True)
+        call('sh ./%s -w %s'%(WRITETABLE, xml_name), shell=True)
+        print('Verifying xml')        
+        call('sh ./%s -v %s'%(WRITETABLE, xml_name), shell=True)
         pass

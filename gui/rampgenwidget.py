@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 #from matplotlib.colors import colorConverter as conv
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar)
+    NavigationToolbar2QT)
 
 from PySide import QtGui, QtCore
 
@@ -316,9 +316,11 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         print('saved ramp as %s'%path)
         
     def on_write_out(self,):
+        self.save_to_txt()
         self.system.evap_ramp_gen.write_out(times=self.times,
                                             freqs=self.freqs,
                                             amps=self.amps)
+        self.close()
         
             
     def connectUi(self):
@@ -354,7 +356,7 @@ class RampGenDialog(QtGui.QDialog, Ui_RampGenDialog):
         self.axes_a.plot(np.random.rand(10))
         self.figure.set_facecolor('none')
         self.canvas = FigureCanvas(self.figure)
-        self.toolbar = NavigationToolbar(self.canvas, plotwidget, coordinates=False)
+        self.toolbar = NavigationToolbar2QT(self.canvas, parent=plotwidget, coordinates=False)
         self.toolbar.setOrientation(QtCore.Qt.Horizontal)
         self.plotwidgetLayout = QtGui.QVBoxLayout(plotwidget)
         self.plotwidgetLayout.addWidget(self.canvas)
