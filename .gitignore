@@ -2,6 +2,7 @@
 data/*
 test/*
 copyramp/*.sub
+copyramp/*.xml
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

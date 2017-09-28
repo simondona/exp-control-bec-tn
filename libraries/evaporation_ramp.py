@@ -85,6 +85,6 @@ class EvaporationRampGen(object):
         #path, xml_name = os.path.split(self.write_xml(xml))
         xml_name = self.write_xml(xml)
         call('sh ./%s -w %s'%(WRITETABLE, xml_name), shell=True)
-        print('Verifying xml')        
-        call('sh ./%s -v %s'%(WRITETABLE, xml_name), shell=True)
+#        print('Verifying xml')        
+#        call('sh ./%s -v %s'%(WRITETABLE, xml_name), shell=True)
         pass
