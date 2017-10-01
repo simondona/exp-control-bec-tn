@@ -223,7 +223,7 @@ class ProgramTable(QtGui.QTableWidget, object):
                         new_item.setFlags(new_item.flags()&~QtCore.Qt.ItemIsEnabled)
 
                     if self.extended_view and not row["enable_parent"]:
-                        new_item.setBackgroundColor(QtCore.Qt.lightGray)
+                        new_item.setBackground(QtCore.Qt.lightGray)
                         font = QtGui.QFont()
                         font.setItalic(True)
                         new_item.setFont(font)
@@ -523,7 +523,7 @@ class ProgramTable(QtGui.QTableWidget, object):
 #            tot_state = tot_state and not state.running
 #        if not tot_state:
 #            reply = QtGui.QMessageBox.question(self, 'FPGA warning',
-#                                               "Another program is running on one or more FPGAs,\nare you shure to launch a new one?",
+#                                               "Another program is running on one or more FPGAs,\nare you sure to launch a new one?",
 #                                               QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
 #                                               QtGui.QMessageBox.No)
 #            tot_state = reply == QtGui.QMessageBox.Yes

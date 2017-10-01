@@ -19,11 +19,15 @@
 #pylint: disable-msg=E1101
 
 from functools import partial
+# copyramp button
+
 
 from gui.constants import RED, GREEN, BLUE
 import gui.programwidget
 import gui.defaultsettings
 import gui.plotactions
+import gui.commandwidget
+import gui.rampgenwidget
 
 import PySide.QtGui as QtGui
 import PySide.QtCore as QtCore
@@ -76,7 +80,7 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         right_layout = QtGui.QGridLayout(right_widget)
 
         right_widget.setMinimumWidth(160)
-        right_widget.setMaximumWidth(300)
+        right_widget.setMaximumWidth(350)
 
         main_layout.addWidget(self.table_widget)
         main_layout.addWidget(right_widget)
@@ -134,59 +138,35 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
         check_fpga_button.clicked.connect(partial(self.table_widget.table.update_fpgas, init=False))
         right_layout.addWidget(check_fpga_button, 5, 1, 1, 1)
 
+		# copyramp button:
+        # added button
+        # connected to on_copyramp defined at line 279
+        # moved iter_cmd_tabwidget from 6 to 7
+        copyramp_button = QtGui.QPushButton("Edit Evaporation ramp")
+        copyramp_button.setToolTip("GUI dialog to edit evaporation suobroutine")
+        copyramp_button.clicked.connect(self.on_copyramp)
+        copyramp_button.setStyleSheet("color: %s"%RED)
+        right_layout.addWidget(copyramp_button, 6, 0, 1, 2)
+
 
         #iterations/commands tab
         iter_cmd_tabwidget = QtGui.QTabWidget(self)
-        cmd_widget = QtGui.QWidget()
-        cmd_layout = QtGui.QGridLayout(cmd_widget)
+        cmd_widget = gui.commandwidget.CommandWidget(init_edit=self.cmd_init_edit,
+                                                     loop_edit=self.cmd_loop_edit)
+        
+        #commands tab connections
+        cmd_widget.start_cmd_button.clicked.connect(self.on_start_cmd)
+        cmd_widget.stop_cmd_button.clicked.connect(self.on_stop_cmd)
+        self.cmd_loop_edit.textChanged.connect(self.on_cmd_changed)
+        self.cmd_init_edit.textChanged.connect(self.on_cmd_changed)
+        
+        
         iter_widget = QtGui.QWidget()
         iter_layout = QtGui.QVBoxLayout(iter_widget)
         iter_cmd_tabwidget.addTab(iter_widget, "Iterations")
         iter_cmd_tabwidget.addTab(cmd_widget, "Commands")
 
-        right_layout.addWidget(iter_cmd_tabwidget, 6, 0, 1, 2)
-
-
-        #commands tab
-        init_tab = QtGui.QWidget()
-        init_tab.setToolTip("run once at the beginning, variables prg and cmd are avaiable")
-        init_layout = QtGui.QVBoxLayout(init_tab)
-        init_layout.addWidget(self.cmd_init_edit)
-
-        loop_tab = QtGui.QWidget()
-        loop_tab.setToolTip("infinite loop, interrupt with cmd.stop()")
-        loop_layout = QtGui.QVBoxLayout(loop_tab)
-        loop_layout.addWidget(self.cmd_loop_edit)
-
-        cmd_sub_tabwidget = QtGui.QTabWidget(self)
-        cmd_sub_tabwidget.addTab(init_tab, "Init")
-        cmd_sub_tabwidget.addTab(loop_tab, "Loop")
-
-        #commands text areas settings
-        font = QtGui.QFont("Monospace")
-        font.setStyleHint(QtGui.QFont.TypeWriter)
-        font.setPointSize(int(0.8*float(font.pointSize())))
-        self.cmd_loop_edit.setWordWrapMode(QtGui.QTextOption.NoWrap)
-        self.cmd_init_edit.setWordWrapMode(QtGui.QTextOption.NoWrap)
-        self.cmd_loop_edit.setFont(font)
-        self.cmd_init_edit.setFont(font)
-        self.cmd_loop_edit.textChanged.connect(self.on_cmd_changed)
-        self.cmd_init_edit.textChanged.connect(self.on_cmd_changed)
-
-        #start stop commands buttons settings
-        start_cmd_button = QtGui.QPushButton("Start")
-        start_cmd_button.setToolTip("send system commands (init + the infinite loop)")
-        start_cmd_button.clicked.connect(self.on_start_cmd)
-        start_cmd_button.setStyleSheet("color: %s"%BLUE)
-        stop_cmd_button = QtGui.QPushButton("Stop")
-        stop_cmd_button.setToolTip("stop the running system commands")
-        stop_cmd_button.clicked.connect(self.on_stop_cmd)
-        stop_cmd_button.setStyleSheet("color: %s"%RED)
-
-        #commands layout
-        cmd_layout.addWidget(cmd_sub_tabwidget, 0, 0, 1, 2)
-        cmd_layout.addWidget(start_cmd_button, 1, 0, 1, 1)
-        cmd_layout.addWidget(stop_cmd_button, 1, 1, 1, 1)
+        right_layout.addWidget(iter_cmd_tabwidget, 7, 0, 1, 2)
 
 
         #iterations parameters group
@@ -269,6 +249,12 @@ class ProgramEditWindow(QtGui.QMainWindow, object):
 
         self.set_progressbar_value(0)
         self.table_widget.table.update_fpgas(init=False)
+
+    def on_copyramp(self):
+#		call('sh ./copyramp/copyramp.sh', shell=True)
+        if not hasattr(self, 'rampgendialog'):
+            self.rampgendialog = gui.rampgenwidget.RampGenDialog(parent=self, system=self.system)
+        self.rampgendialog.show()
 
     def on_cmd_changed(self):
         self.table_widget.table.cmd_str = (str(self.cmd_init_edit.toPlainText()),
